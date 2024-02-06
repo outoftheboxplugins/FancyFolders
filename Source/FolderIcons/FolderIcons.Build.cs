@@ -42,6 +42,7 @@ public class FolderIcons : ModuleRules
 				"ToolMenus",
 				"ContentBrowser",
 				"ContentBrowserData",
+				"DeveloperSettings",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

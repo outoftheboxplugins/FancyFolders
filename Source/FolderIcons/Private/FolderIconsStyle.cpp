@@ -1,73 +1,32 @@
-﻿// My super cool copyright notice
+﻿// Copyright Out-of-the-Box Plugins 2018-2024. All Rights Reserved.
 
 #include "FolderIconsStyle.h"
 
-#include "Styling/SlateStyleRegistry.h"
-#include "Framework/Application/SlateApplication.h"
-#include "Slate/SlateGameResources.h"
-#include "Interfaces/IPluginManager.h"
-#include "Styling/SlateStyleMacros.h"
+#include <Styling/SlateStyleRegistry.h>
 
-#define RootToContentDir Style->RootToContentDir
+#include "FolderIcons.h"
 
-TSharedPtr<FSlateStyleSet> FFolderIconsStyle::StyleInstance = nullptr;
-
-void FFolderIconsStyle::Initialize()
+FFolderIconsStyle::FFolderIconsStyle() : FSlateStyleSet(TEXT("FolderIconsStyle"))
 {
-	if (!StyleInstance.IsValid())
+	const TArray<FString> FolderIcons = FFolderIconsModule::GetFolderIconsOnDisk();
+	for (const FString& File : FolderIcons)
 	{
-		StyleInstance = Create();
-		FSlateStyleRegistry::RegisterSlateStyle(*StyleInstance);
-	}
-}
+		const FString FileName = FPaths::GetBaseFilename(File, true);
+		const FName Property = *FString::Printf(TEXT("FolderIcons.%s"), *FileName);
 
-void FFolderIconsStyle::Shutdown()
-{
-	FSlateStyleRegistry::UnRegisterSlateStyle(*StyleInstance);
-	ensure(StyleInstance.IsUnique());
-	StyleInstance.Reset();
-}
-
-FName FFolderIconsStyle::GetStyleSetName()
-{
-	static FName StyleSetName(TEXT("FolderIconsStyle"));
-	return StyleSetName;
-}
-
-const FVector2D Icon16x16(16.0f, 16.0f);
-const FVector2D Icon20x20(20.0f, 20.0f);
-
-TSharedRef< FSlateStyleSet > FFolderIconsStyle::Create()
-{
-	TSharedRef< FSlateStyleSet > Style = MakeShareable(new FSlateStyleSet("FolderIconsStyle"));
-
-	const FString ResourcesFolder = IPluginManager::Get().FindPlugin("FolderIcons")->GetBaseDir() / TEXT("Resources");
-	Style->SetContentRoot(ResourcesFolder);
-
-	const FString IconsFolder = ResourcesFolder / TEXT("Icons"); 
-	TArray<FString> FoundFiles;
-	IFileManager::Get().FindFilesRecursive(FoundFiles, *IconsFolder, TEXT("*.svg"), true, false);
-
-	for(const auto& File : FoundFiles)
-	{
-		FString Filename = FPaths::GetBaseFilename(File);
-		const FString Property = FString::Printf(TEXT("FolderIcons.%s"), *Filename);
-		const FString Brush = FString::Printf(TEXT("Icons/%s"), *Filename); 
-		Style->Set( FName(Property), new IMAGE_BRUSH_SVG(Brush, FVector2D(64, 64)));
+		Set(Property, new FSlateVectorImageBrush(File, FVector2D(64, 64)));
 	}
 
-	return Style;
+	FSlateStyleRegistry::RegisterSlateStyle(*this);
 }
 
-void FFolderIconsStyle::ReloadTextures()
+FFolderIconsStyle& FFolderIconsStyle::Get()
 {
-	if (FSlateApplication::IsInitialized())
-	{
-		FSlateApplication::Get().GetRenderer()->ReloadTextureResources();
-	}
+	static FFolderIconsStyle Inst;
+	return Inst;
 }
 
-const ISlateStyle& FFolderIconsStyle::Get()
+FFolderIconsStyle::~FFolderIconsStyle()
 {
-	return *StyleInstance;
+	FSlateStyleRegistry::UnRegisterSlateStyle(*this);
 }

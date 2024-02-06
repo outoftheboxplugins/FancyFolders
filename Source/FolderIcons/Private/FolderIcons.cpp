@@ -7,6 +7,7 @@
 #include "ContentBrowserMenuContexts.h"
 #include "FolderIconsStyle.h"
 #include "IContentBrowserDataModule.h"
+#include "Interfaces/IPluginManager.h"
 #include "ToolMenus.h"
 
 namespace
@@ -67,8 +68,6 @@ void FFolderIconsModule::StartupModule()
 {
 	if (FSlateApplication::IsInitialized())
 	{
-		FFolderIconsStyle::Initialize();
-
 		PresetIcons.Emplace(TEXT("Maps"), "Icons.Level");
 		FSlateApplication::Get().OnPostTick().AddRaw(this, &FFolderIconsModule::OnApplicationTick);
 
@@ -99,6 +98,21 @@ void FFolderIconsModule::ShutdownModule()
 	{
 		FSlateApplication::Get().OnPostTick().RemoveAll(this);
 	}
+}
+FString FFolderIconsModule::GetResourcesFolder()
+{
+	return IPluginManager::Get().FindPlugin("FolderIcons")->GetBaseDir() / TEXT("Resources/");
+}
+
+TArray<FString> FFolderIconsModule::GetFolderIconsOnDisk()
+{
+	const FString ResourcesFolder = GetResourcesFolder();
+	const FString IconsFolder = ResourcesFolder + TEXT("Icons");
+
+	TArray<FString> FoundFiles;
+	IFileManager::Get().FindFilesRecursive(FoundFiles, *IconsFolder, TEXT("*.svg"), true, false);
+
+	return FoundFiles;
 }
 
 void FFolderIconsModule::OnApplicationTick(float DeltaTime)
@@ -199,43 +213,6 @@ void FFolderIconsModule::BuildContextMenu(FMenuBuilder& MenuBuilder, UContentBro
 	)));
 	}
 }
-
-/*
-void FFolderIconsModule::BuildContextMenu(FToolMenuSection& InSection)
-{
-InSection.AddSubMenu(
-	"RunStopUtilityWidget",
-	FNewToolMenuSectionDelegate::CreateLambda(
-		[=, this](FToolMenuSection& InSubSection)
-		{
-
-		}
-	)
-);
-*/
-
-/*
-InSection.AddMenuEntry(
-	"SetIcon",
-	INVTEXT("SetRandomIcon"),
-	INVTEXT("SetRandomIcon"),
-	FSlateIcon(FAppStyle::GetAppStyleSetName(), "MediaAsset.AssetActions.Play.Small"),
-	FUIAction(FExecuteAction::CreateLambda(
-		[=, this]()
-		{
-			for (const FString& Path : Context->SelectedPackagePaths)
-			{
-				static int32 IconIndex = 0;
-				IconIndex = (IconIndex + 1) % StandardIcons.Num();
-
-				Icons.Emplace(Path, StandardIcons[IconIndex]);
-			}
-		}
-	))
-);
-}
-*/
-
 
 void FFolderIconsModule::AddIconsToWidgets()
 {

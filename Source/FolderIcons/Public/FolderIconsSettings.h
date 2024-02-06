@@ -1,4 +1,4 @@
-﻿// My super cool copyright notice
+﻿// Copyright Out-of-the-Box Plugins 2018-2024. All Rights Reserved.
 
 #pragma once
 

@@ -9,9 +9,17 @@ class UContentBrowserFolderContext;
 class FFolderIconsModule : public IModuleInterface
 {
 public:
+	static FString GetResourcesFolder();
+	static TArray<FString> GetFolderIconsOnDisk();
+
+private:
+	// Begin IModuleInterface interface
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+	// End IModuleInterface interface
 
+
+	// TODO: Below might require a refactor
 	void OnApplicationTick(float DeltaTime);
 
 	void BuildContextMenu(FMenuBuilder& MenuBuilder, UContentBrowserFolderContext* Context);
