@@ -41,7 +41,7 @@ TSharedRef< FSlateStyleSet > FFolderIconsStyle::Create()
 {
 	TSharedRef< FSlateStyleSet > Style = MakeShareable(new FSlateStyleSet("FolderIconsStyle"));
 
-	const FString ResourcesFolder = IPluginManager::Get().FindPlugin("FolerIcons")->GetBaseDir() / TEXT("Resources");
+	const FString ResourcesFolder = IPluginManager::Get().FindPlugin("FolderIcons")->GetBaseDir() / TEXT("Resources");
 	Style->SetContentRoot(ResourcesFolder);
 
 	const FString IconsFolder = ResourcesFolder / TEXT("Icons"); 

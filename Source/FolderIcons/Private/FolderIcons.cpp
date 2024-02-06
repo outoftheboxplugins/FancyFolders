@@ -1,6 +1,6 @@
 ﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "FolerIcons.h"
+#include "FolderIcons.h"
 
 #include "Algo/Compare.h"
 #include "ContentBrowserDataSubsystem.h"
@@ -63,14 +63,14 @@ namespace
 	}
 } // namespace
 
-void FFolerIconsModule::StartupModule()
+void FFolderIconsModule::StartupModule()
 {
 	if (FSlateApplication::IsInitialized())
 	{
 		FFolderIconsStyle::Initialize();
 
 		PresetIcons.Emplace(TEXT("Maps"), "Icons.Level");
-		FSlateApplication::Get().OnPostTick().AddRaw(this, &FFolerIconsModule::OnApplicationTick);
+		FSlateApplication::Get().OnPostTick().AddRaw(this, &FFolderIconsModule::OnApplicationTick);
 
 		UToolMenu* Menu = UToolMenus::Get()->ExtendMenu("ContentBrowser.FolderContextMenu");
 		FToolMenuSection& Section = Menu->AddSection("FolderIcons", INVTEXT("Folder Icons"), FToolMenuInsert("PathViewFolderOptions", EToolMenuInsertType::After));
@@ -85,7 +85,7 @@ void FFolerIconsModule::StartupModule()
 						"FolderIconOptions",
 						INVTEXT("Set Folder Icon"),
 						INVTEXT("Set a folder's icon"),
-						FNewToolMenuChoice(FNewMenuDelegate::CreateRaw(this, &FFolerIconsModule::BuildContextMenu, Context))
+						FNewToolMenuChoice(FNewMenuDelegate::CreateRaw(this, &FFolderIconsModule::BuildContextMenu, Context))
 					);
 				}
 			)
@@ -93,7 +93,7 @@ void FFolerIconsModule::StartupModule()
 	}
 }
 
-void FFolerIconsModule::ShutdownModule()
+void FFolderIconsModule::ShutdownModule()
 {
 	if (FSlateApplication::IsInitialized())
 	{
@@ -101,7 +101,7 @@ void FFolerIconsModule::ShutdownModule()
 	}
 }
 
-void FFolerIconsModule::OnApplicationTick(float DeltaTime)
+void FFolderIconsModule::OnApplicationTick(float DeltaTime)
 {
 	TMap<FString, TSharedRef<SWidget>> WidgetsFound;
 
@@ -161,7 +161,7 @@ void FFolerIconsModule::OnApplicationTick(float DeltaTime)
 		AddIconsToWidgets();
 	}
 }
-void FFolerIconsModule::BuildContextMenu(FMenuBuilder& MenuBuilder, UContentBrowserFolderContext* Context)
+void FFolderIconsModule::BuildContextMenu(FMenuBuilder& MenuBuilder, UContentBrowserFolderContext* Context)
 {
 	if (!Context || Context->NumAssetPaths <= 0)
 	{
@@ -201,7 +201,7 @@ void FFolerIconsModule::BuildContextMenu(FMenuBuilder& MenuBuilder, UContentBrow
 }
 
 /*
-void FFolerIconsModule::BuildContextMenu(FToolMenuSection& InSection)
+void FFolderIconsModule::BuildContextMenu(FToolMenuSection& InSection)
 {
 InSection.AddSubMenu(
 	"RunStopUtilityWidget",
@@ -237,17 +237,17 @@ InSection.AddMenuEntry(
 */
 
 
-void FFolerIconsModule::AddIconsToWidgets()
+void FFolderIconsModule::AddIconsToWidgets()
 {
 	// TODO: Find some way to prevent duplicates
 	for (const TTuple<FString, TSharedRef<SWidget>>& AssetWidget : CurrentAssetWidgets)
 	{
 		const TSharedRef<SImage> Image = StaticCastSharedRef<SImage>(AssetWidget.Value);
-		Image->SetImage(TAttribute<const FSlateBrush*>::CreateRaw(this, &FFolerIconsModule::GetIconForFolder, AssetWidget.Key));
+		Image->SetImage(TAttribute<const FSlateBrush*>::CreateRaw(this, &FFolderIconsModule::GetIconForFolder, AssetWidget.Key));
 	}
 }
 
-const FSlateBrush* FFolerIconsModule::GetIconForFolder(FString VirtualPath) const
+const FSlateBrush* FFolderIconsModule::GetIconForFolder(FString VirtualPath) const
 {
 	if (Icons.Contains(VirtualPath))
 	{
@@ -265,4 +265,4 @@ const FSlateBrush* FFolerIconsModule::GetIconForFolder(FString VirtualPath) cons
 	return nullptr;
 }
 
-IMPLEMENT_MODULE(FFolerIconsModule, FolerIcons)
+IMPLEMENT_MODULE(FFolderIconsModule, FolderIcons)

@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class FolerIcons : ModuleRules
+public class FolderIcons : ModuleRules
 {
-	public FolerIcons(ReadOnlyTargetRules Target) : base(Target)
+	public FolderIcons(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		

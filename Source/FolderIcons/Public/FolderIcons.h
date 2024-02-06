@@ -1,13 +1,12 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Out-of-the-Box Plugins 2018-2024. All Rights Reserved.
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "Modules/ModuleManager.h"
+#include <Modules/ModuleInterface.h>
 
 class UContentBrowserFolderContext;
 
-class FFolerIconsModule : public IModuleInterface
+class FFolderIconsModule : public IModuleInterface
 {
 public:
 	virtual void StartupModule() override;
