@@ -11,9 +11,7 @@ FFolderIconsStyle::FFolderIconsStyle() : FSlateStyleSet(TEXT("FolderIconsStyle")
 	const TArray<FString> FolderIcons = FFolderIconsModule::GetFolderIconsOnDisk();
 	for (const FString& File : FolderIcons)
 	{
-		const FString FileName = FPaths::GetBaseFilename(File, true);
-		const FName Property = *FString::Printf(TEXT("FolderIcons.%s"), *FileName);
-
+		const FName Property = *FPaths::GetBaseFilename(File, true);
 		Set(Property, new FSlateVectorImageBrush(File, FVector2D(64, 64)));
 	}
 

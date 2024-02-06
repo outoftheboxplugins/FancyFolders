@@ -18,7 +18,7 @@ struct FFolderIconPreset
 	FLinearColor Color;
 
 	UPROPERTY(EditAnywhere, Category = "")
-	FString Icon;
+	FName Icon;
 };
 
 UCLASS(config = Editor, defaultconfig)
@@ -28,7 +28,9 @@ class UFolderIconsSettings : public UDeveloperSettings
 
 public:
 	UPROPERTY(EditAnywhere, config, Category = "")
-	TArray<FFolderIconPreset> Presets;
+	TArray<FFolderIconPreset> Presets = { FFolderIconPreset({ TEXT("Maps"), FLinearColor::Blue, TEXT("Apple") }) };
+
+	TArray<FFolderIconPreset> Assigned;
 
 private:
 	// Begin UDeveloperSettings interface

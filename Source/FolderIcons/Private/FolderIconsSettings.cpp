@@ -13,7 +13,7 @@ FName UFolderIconsSettings::GetCategoryName() const
 }
 FName UFolderIconsSettings::GetSectionName() const
 {
-	return TEXT("Folder Icons");	
+	return TEXT("Folder Icons");
 }
 
 #if WITH_EDITOR

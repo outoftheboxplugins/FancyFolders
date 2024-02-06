@@ -43,6 +43,8 @@ public class FolderIcons : ModuleRules
 				"ContentBrowser",
 				"ContentBrowserData",
 				"DeveloperSettings",
+				"EditorSubsystem",
+				"UnrealEd",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
