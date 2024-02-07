@@ -28,7 +28,7 @@ class UFolderIconsSettings : public UDeveloperSettings
 
 public:
 	UPROPERTY(EditAnywhere, config, Category = "")
-	TArray<FFolderIconPreset> Presets = { FFolderIconPreset({ TEXT("Maps"), FLinearColor::Blue, TEXT("Apple") }) };
+	TArray<FFolderIconPreset> Presets = {FFolderIconPreset({TEXT("Maps"), FLinearColor::Blue, TEXT("AndroidNew")})};
 
 	TArray<FFolderIconPreset> Assigned;
 

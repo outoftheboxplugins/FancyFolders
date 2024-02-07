@@ -6,6 +6,7 @@
 #include <Interfaces/IPluginManager.h>
 #include <ToolMenus.h>
 
+#include "FolderIconsStyle.h"
 #include "FolderIconsSubsystem.h"
 
 TArray<FString> FFolderIconsModule::GetFolderIconsOnDisk()
@@ -60,10 +61,10 @@ void FFolderIconsModule::BuildContextMenu(FMenuBuilder& MenuBuilder, UContentBro
 	{
 		const FString DisplayName = FPaths::GetBaseFilename(IconPath);
 		MenuBuilder.AddMenuEntry(
-			FText::FromString(IconPath),
-			FText::FromString(IconPath),
+			FText::FromString(DisplayName),
+			FText::FromString(DisplayName),
 			// TODO: Maybe here we can display the raw image as a little thumbnail?
-			FSlateIcon(),
+			FSlateIcon(TEXT("FolderIconsStyle"), FName(DisplayName)),
 			FUIAction(FExecuteAction::CreateLambda(
 				[=, this]()
 				{

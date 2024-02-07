@@ -64,7 +64,15 @@ namespace
 
 void UFolderIconsSubsystem::SetFoldersIcon(const FString& Icon, TArray<FString> Folders)
 {
+	UFolderIconsSettings* Settings = GetMutableDefault<UFolderIconsSettings>();
+	for (const auto& Folder : Folders)
+	{
+		Settings->Assigned.Emplace(Folder, FLinearColor::Red, FName(Icon));
+	}
+
+	AddIconsToWidgets();
 }
+
 void UFolderIconsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	UFolderIconsSettings* Settings = GetMutableDefault<UFolderIconsSettings>();
