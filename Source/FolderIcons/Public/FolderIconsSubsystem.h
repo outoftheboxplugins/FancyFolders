@@ -6,6 +6,8 @@
 
 #include "FolderIconsSubsystem.generated.h"
 
+class FContentBrowserItemDataUpdate;
+
 struct FContentBrowserFolder
 {
 	FString Path;

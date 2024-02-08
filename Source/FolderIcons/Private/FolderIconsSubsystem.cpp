@@ -4,6 +4,7 @@
 
 #include <Algo/Compare.h>
 #include <ContentBrowserDataSubsystem.h>
+#include <ContentBrowserItemData.h>
 #include <ContentBrowserModule.h>
 #include <IContentBrowserDataModule.h>
 

@@ -26,7 +26,7 @@ public class FolderIcons : ModuleRules
 			new string[]
 			{
 				"Core", "EditorStyle",
-				"Projects",
+				"Projects", "ContentBrowserData",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
