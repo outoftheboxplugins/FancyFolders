@@ -15,7 +15,7 @@ struct FContentBrowserFolder
 };
 
 UCLASS()
-class UFolderIconsSubsystem : public UEditorSubsystem, public FTickableGameObject
+class UFolderIconsSubsystem : public UEditorSubsystem
 {
 	GENERATED_BODY()
 public:
@@ -27,16 +27,17 @@ private:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	// End UEditorSubsystem interface
 
-	// Begin FTickableGameObject interface
-	virtual void Tick(float DeltaTime) override;
-	virtual ETickableTickType GetTickableTickType() const override;
-	virtual UWorld* GetTickableGameObjectWorld() const override;
-	virtual bool IsTickableInEditor() const override;
-	virtual TStatId GetStatId() const override;
-	// End FTickableGameObject interface
-
+	void OnPostTick(float DeltaTime);
 	void RefreshFolderIcons();
-	TArray<FContentBrowserFolder> CurrentAssetWidgets;
 
 	void OnSettingsChanged(UObject* Settings, FPropertyChangedEvent& PropertyChangedEvent);
+	void OnAssetPathChanged(const FString& AssetPath);
+	void OnItemDataUpdated(TArrayView<const FContentBrowserItemDataUpdate> ItemDataUpdate);
+	void OnItemDataRefreshed();
+	void OnItemDataDiscoveryComplete();
+
+	TArray<FContentBrowserFolder> CurrentAssetWidgets;
+
+
+	bool bRefreshNextTick = false;
 };

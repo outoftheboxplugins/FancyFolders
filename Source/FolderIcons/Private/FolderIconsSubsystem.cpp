@@ -4,10 +4,14 @@
 
 #include <Algo/Compare.h>
 #include <ContentBrowserDataSubsystem.h>
+#include <ContentBrowserModule.h>
 #include <IContentBrowserDataModule.h>
 
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "AssetRegistry/IAssetRegistry.h"
 #include "FolderIconsSettings.h"
 #include "FolderIconsStyle.h"
+#include "Interfaces/IMainFrameModule.h"
 
 namespace
 {
@@ -68,9 +72,25 @@ void UFolderIconsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	UFolderIconsSettings* Settings = GetMutableDefault<UFolderIconsSettings>();
 	Settings->OnSettingChanged().AddUObject(this, &ThisClass::OnSettingsChanged);
 
-	// FContentBrowserModule& ContentBrowserModule = FModuleManager::GetModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser"));
-	// FContentBrowserModule::FOnSourcesViewChanged& SourcesViewChangedDelegate = ContentBrowserModule.GetOnSourcesViewChanged();
-	// FContentBrowserModule::FOnAssetPathChanged& Delegate = ContentBrowserModule.GetOnAssetPathChanged();
+	FContentBrowserModule& ContentBrowserModule = FModuleManager::GetModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser"));
+	ContentBrowserModule.GetOnAssetPathChanged().AddUObject(this, &ThisClass::OnAssetPathChanged);
+
+	FSlateApplication& SlateApp = FSlateApplication::Get();
+	SlateApp.OnPostTick().AddUObject(this, &ThisClass::OnPostTick);
+
+	UContentBrowserDataSubsystem* ContentBrowserData = IContentBrowserDataModule::Get().GetSubsystem();
+	ContentBrowserData->OnItemDataUpdated().AddUObject(this, &ThisClass::OnItemDataUpdated);
+	ContentBrowserData->OnItemDataRefreshed().AddUObject(this, &ThisClass::OnItemDataRefreshed);
+	ContentBrowserData->OnItemDataDiscoveryComplete().AddUObject(this, &ThisClass::OnItemDataDiscoveryComplete);
+}
+
+void UFolderIconsSubsystem::OnPostTick(float DeltaTime)
+{
+	if (bRefreshNextTick)
+	{
+		RefreshFolderIcons();
+		bRefreshNextTick = false;
+	}
 }
 
 void UFolderIconsSubsystem::RefreshFolderIcons()
@@ -147,32 +167,6 @@ void UFolderIconsSubsystem::RefreshFolderIcons()
 	}
 }
 
-void UFolderIconsSubsystem::Tick(float DeltaTime)
-{
-	// TODO: This shouldn't happen on tick, find some callback for it instead.
-	RefreshFolderIcons();
-}
-
-ETickableTickType UFolderIconsSubsystem::GetTickableTickType() const
-{
-	return IsTemplate() ? ETickableTickType::Never : ETickableTickType::Always;
-}
-
-UWorld* UFolderIconsSubsystem::GetTickableGameObjectWorld() const
-{
-	return GetWorld();
-}
-
-bool UFolderIconsSubsystem::IsTickableInEditor() const
-{
-	return true;
-}
-
-TStatId UFolderIconsSubsystem::GetStatId() const
-{
-	RETURN_QUICK_DECLARE_CYCLE_STAT(UFolderIconsSubsystem, STATGROUP_Tickables);
-}
-
 const FSlateBrush* UFolderIconsSubsystem::GetIconForFolder(const FString& VirtualPath) const
 {
 	const UFolderIconsSettings* const Settings = GetDefault<UFolderIconsSettings>();
@@ -200,4 +194,25 @@ const FSlateBrush* UFolderIconsSubsystem::GetIconForFolder(const FString& Virtua
 
 void UFolderIconsSubsystem::OnSettingsChanged(UObject* Settings, FPropertyChangedEvent& PropertyChangedEvent)
 {
+}
+
+
+void UFolderIconsSubsystem::OnAssetPathChanged(const FString& AssetPath)
+{
+	bRefreshNextTick = true;
+}
+
+void UFolderIconsSubsystem::OnItemDataUpdated(TArrayView<const FContentBrowserItemDataUpdate> ItemDataUpdate)
+{
+	bRefreshNextTick = true;
+}
+
+void UFolderIconsSubsystem::OnItemDataRefreshed()
+{
+	bRefreshNextTick = true;
+}
+
+void UFolderIconsSubsystem::OnItemDataDiscoveryComplete()
+{
+	bRefreshNextTick = true;
 }
