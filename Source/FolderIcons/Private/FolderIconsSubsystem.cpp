@@ -25,8 +25,11 @@ namespace
 		return ConvertedPath.ToString();
 	}
 
-	TSharedPtr<SWidget> FindWidgetOfTypeInHierarchy(const TSharedRef<SWidget>& Widget, const FName& Type)
+	template <typename TWidgetType>
+	TSharedPtr<SWidget> FindWidgetOfTypeInHierarchy(const TSharedRef<SWidget>& Widget)
 	{
+		const FName Type = TWidgetType::StaticWidgetClass().GetWidgetType();
+
 		FChildren* Children = Widget->GetChildren();
 		if (!Children)
 		{
@@ -46,7 +49,7 @@ namespace
 				return ChildWidget;
 			}
 
-			if (TSharedPtr<SWidget> FoundChild = FindWidgetOfTypeInHierarchy(ChildWidget.ToSharedRef(), Type))
+			if (TSharedPtr<SWidget> FoundChild = FindWidgetOfTypeInHierarchy<TWidgetType>(ChildWidget.ToSharedRef()))
 			{
 				return FoundChild;
 			}
@@ -140,7 +143,7 @@ void UFolderIconsSubsystem::RefreshFolderIcons()
 			}
 
 			// TODO: Check if we transform TEXT("SImage") to a template, static or a GET_CLASS_CHECKED
-			if (const TSharedPtr<SWidget> FoundImage = FindWidgetOfTypeInHierarchy(ChildWidget.ToSharedRef(), TEXT("SImage")))
+			if (const TSharedPtr<SWidget> FoundImage = FindWidgetOfTypeInHierarchy<SImage>(ChildWidget.ToSharedRef()))
 			{
 				WidgetsFound.Emplace(ConvertVirtualPathToInvariantPathString(TagString), FoundImage.ToSharedRef());
 			}
