@@ -6,6 +6,8 @@
 
 #include "FolderIconsSubsystem.generated.h"
 
+
+class SAssetView;
 class FContentBrowserItemDataUpdate;
 
 struct FContentBrowserFolder
@@ -30,16 +32,19 @@ private:
 	// End UEditorSubsystem interface
 
 	void OnPostTick(float DeltaTime);
-	void RefreshFolderIcons();
-
 	void OnSettingsChanged(UObject* Settings, FPropertyChangedEvent& PropertyChangedEvent);
 	void OnAssetPathChanged(const FString& AssetPath);
 	void OnItemDataUpdated(TArrayView<const FContentBrowserItemDataUpdate> ItemDataUpdate);
 	void OnItemDataRefreshed();
 	void OnItemDataDiscoveryComplete();
 
-	TArray<FContentBrowserFolder> CurrentAssetWidgets;
+	void RefreshAllFolders();
+	void IterateOverWidgetsRecursively(const TArray<TSharedRef<SWidget>>& TopLevelWidgets, TFunctionRef<void(const TSharedRef<SWidget>& Widget)> Iterator);
+	TArray<TSharedRef<SAssetView>> GetAllAssetViews();
+	TArray<FContentBrowserFolder> GetAllFolders(const TArray<TSharedRef<SAssetView>>& AssetViews);
+	void AssignIconAndColor(const FContentBrowserFolder& Folder);
 
+	TArray<TSharedRef<SAssetView>> AssetViewWidgets;
 
 	bool bRefreshNextTick = false;
 };
