@@ -6,6 +6,13 @@
 
 #include "FolderIconsSubsystem.generated.h"
 
+struct FContentBrowserFolder
+{
+	FString Path;
+	TSharedRef<SWidget> Widget;
+
+	bool operator==(const FContentBrowserFolder&) const = default;
+};
 
 UCLASS()
 class UFolderIconsSubsystem : public UEditorSubsystem, public FTickableGameObject
@@ -18,7 +25,6 @@ public:
 private:
 	// Begin UEditorSubsystem interface
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
-	virtual void Deinitialize() override;
 	// End UEditorSubsystem interface
 
 	// Begin FTickableGameObject interface
@@ -29,8 +35,8 @@ private:
 	virtual TStatId GetStatId() const override;
 	// End FTickableGameObject interface
 
-	void AddIconsToWidgets();
-	TMap<FString, TSharedRef<SWidget>> CurrentAssetWidgets;
+	void RefreshFolderIcons();
+	TArray<FContentBrowserFolder> CurrentAssetWidgets;
 
 	void OnSettingsChanged(UObject* Settings, FPropertyChangedEvent& PropertyChangedEvent);
 };
