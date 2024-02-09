@@ -23,8 +23,10 @@ class UFolderIconsSubsystem : public UEditorSubsystem
 {
 	GENERATED_BODY()
 public:
+	static UFolderIconsSubsystem& Get();
+
 	void SetFoldersIcon(const FString& Icon, TArray<FString> Folders);
-	const FSlateBrush* GetIconForFolder(const FString& VirtualPath) const;
+	const FSlateBrush* GetIconForFolder(const FString& VirtualPath, bool bIsColumnView) const;
 
 private:
 	// Begin UEditorSubsystem interface
@@ -32,19 +34,15 @@ private:
 	// End UEditorSubsystem interface
 
 	void OnPostTick(float DeltaTime);
-	void OnSettingsChanged(UObject* Settings, FPropertyChangedEvent& PropertyChangedEvent);
-	void OnAssetPathChanged(const FString& AssetPath);
-	void OnItemDataUpdated(TArrayView<const FContentBrowserItemDataUpdate> ItemDataUpdate);
-	void OnItemDataRefreshed();
-	void OnItemDataDiscoveryComplete();
 
 	void RefreshAllFolders();
-	void IterateOverWidgetsRecursively(const TArray<TSharedRef<SWidget>>& TopLevelWidgets, TFunctionRef<void(const TSharedRef<SWidget>& Widget)> Iterator);
 	TArray<TSharedRef<SAssetView>> GetAllAssetViews();
 	TArray<FContentBrowserFolder> GetAllFolders(const TArray<TSharedRef<SAssetView>>& AssetViews);
 	void AssignIconAndColor(const FContentBrowserFolder& Folder);
 
-	TArray<TSharedRef<SAssetView>> AssetViewWidgets;
+	static TSharedRef<SWidget> FindChildWidgetOfType(const TSharedRef<SWidget>& Parent, const FName& WidgetType);
+	static void IterateOverWidgetsRecursively(const TArray<TSharedRef<SWidget>>& TopLevelWidgets, TFunctionRef<void(const TSharedRef<SWidget>& Widget)> Iterator);
 
-	bool bRefreshNextTick = false;
+
+	TArray<TSharedRef<SAssetView>> AssetViewWidgets;
 };

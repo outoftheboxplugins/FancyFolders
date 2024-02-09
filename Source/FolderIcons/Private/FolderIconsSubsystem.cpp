@@ -26,40 +26,12 @@ namespace
 		IContentBrowserDataModule::Get().GetSubsystem()->TryConvertVirtualPath(FName(VirtualPath), ConvertedPath);
 		return ConvertedPath.ToString();
 	}
-
-	template <typename TWidgetType>
-	TSharedPtr<SWidget> FindChildWidgetOfType(const TSharedRef<SWidget>& Widget)
-	{
-		const FName Type = TWidgetType::StaticWidgetClass().GetWidgetType();
-
-		FChildren* Children = Widget->GetChildren();
-		if (!Children)
-		{
-			return {};
-		}
-
-		for (int i = 0; i < Children->Num(); i++)
-		{
-			const TSharedPtr<SWidget> ChildWidget = Children->GetChildAt(i);
-			if (!ChildWidget)
-			{
-				continue;
-			}
-
-			if (ChildWidget->GetType().Compare(Type) == 0)
-			{
-				return ChildWidget;
-			}
-
-			if (TSharedPtr<SWidget> FoundChild = FindChildWidgetOfType<TWidgetType>(ChildWidget.ToSharedRef()))
-			{
-				return FoundChild;
-			}
-		}
-
-		return {};
-	}
 } // namespace
+
+UFolderIconsSubsystem& UFolderIconsSubsystem::Get()
+{
+	return *GEditor->GetEditorSubsystem<UFolderIconsSubsystem>();
+}
 
 void UFolderIconsSubsystem::SetFoldersIcon(const FString& Icon, TArray<FString> Folders)
 {
@@ -74,19 +46,8 @@ void UFolderIconsSubsystem::SetFoldersIcon(const FString& Icon, TArray<FString> 
 
 void UFolderIconsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	UFolderIconsSettings* Settings = GetMutableDefault<UFolderIconsSettings>();
-	Settings->OnSettingChanged().AddUObject(this, &ThisClass::OnSettingsChanged);
-
-	FContentBrowserModule& ContentBrowserModule = FModuleManager::GetModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser"));
-	ContentBrowserModule.GetOnAssetPathChanged().AddUObject(this, &ThisClass::OnAssetPathChanged);
-
 	FSlateApplication& SlateApp = FSlateApplication::Get();
 	SlateApp.OnPostTick().AddUObject(this, &ThisClass::OnPostTick);
-
-	UContentBrowserDataSubsystem* ContentBrowserData = IContentBrowserDataModule::Get().GetSubsystem();
-	ContentBrowserData->OnItemDataUpdated().AddUObject(this, &ThisClass::OnItemDataUpdated);
-	ContentBrowserData->OnItemDataRefreshed().AddUObject(this, &ThisClass::OnItemDataRefreshed);
-	ContentBrowserData->OnItemDataDiscoveryComplete().AddUObject(this, &ThisClass::OnItemDataDiscoveryComplete);
 }
 
 void UFolderIconsSubsystem::OnPostTick(float DeltaTime)
@@ -96,14 +57,10 @@ void UFolderIconsSubsystem::OnPostTick(float DeltaTime)
 	{
 	}
 
-	if (bRefreshNextTick)
-	{
-		RefreshAllFolders();
-		bRefreshNextTick = false;
-	}
+	RefreshAllFolders();
 }
 
-const FSlateBrush* UFolderIconsSubsystem::GetIconForFolder(const FString& VirtualPath) const
+const FSlateBrush* UFolderIconsSubsystem::GetIconForFolder(const FString& VirtualPath, bool bIsColumnView) const
 {
 	const UFolderIconsSettings* const Settings = GetDefault<UFolderIconsSettings>();
 
@@ -125,31 +82,10 @@ const FSlateBrush* UFolderIconsSubsystem::GetIconForFolder(const FString& Virtua
 		}
 	}
 
-	return FAppStyle::GetBrush("ContentBrowser.ListViewFolderIcon");
-}
+	const FSlateBrush* NormalViewIcon = FAppStyle::GetBrush("ContentBrowser.ListViewFolderIcon");
+	const FSlateBrush* ColumnViewIcon = FAppStyle::GetBrush("ContentBrowser.ColumnViewFolderIcon");
 
-void UFolderIconsSubsystem::OnSettingsChanged(UObject* Settings, FPropertyChangedEvent& PropertyChangedEvent)
-{
-}
-
-void UFolderIconsSubsystem::OnAssetPathChanged(const FString& AssetPath)
-{
-	bRefreshNextTick = true;
-}
-
-void UFolderIconsSubsystem::OnItemDataUpdated(TArrayView<const FContentBrowserItemDataUpdate> ItemDataUpdate)
-{
-	bRefreshNextTick = true;
-}
-
-void UFolderIconsSubsystem::OnItemDataRefreshed()
-{
-	bRefreshNextTick = true;
-}
-
-void UFolderIconsSubsystem::OnItemDataDiscoveryComplete()
-{
-	bRefreshNextTick = true;
+	return bIsColumnView ? ColumnViewIcon : NormalViewIcon;
 }
 
 void UFolderIconsSubsystem::RefreshAllFolders()
@@ -171,15 +107,16 @@ void UFolderIconsSubsystem::IterateOverWidgetsRecursively(const TArray<TSharedRe
 
 	while (!WidgetsToCheck.IsEmpty())
 	{
-		const TSharedPtr<SWidget> CurrentWidget = WidgetsToCheck.Pop();
+		const TSharedRef<SWidget> CurrentWidget = WidgetsToCheck.Pop();
+		Iterator(CurrentWidget);
 
 		if (CurrentWidget->GetType() == TEXT("SWindow"))
 		{
-			const TSharedPtr<SWindow> WidgetAsWindow = StaticCastSharedPtr<SWindow>(CurrentWidget);
+			const TSharedRef<SWindow> WidgetAsWindow = StaticCastSharedRef<SWindow>(CurrentWidget);
 			WidgetsToCheck.Append(WidgetAsWindow->GetChildWindows());
 		}
 
-		FChildren* Children = CurrentWidget ? CurrentWidget->GetChildren() : nullptr;
+		FChildren* Children = CurrentWidget->GetChildren();
 		if (!Children)
 		{
 			continue;
@@ -188,27 +125,44 @@ void UFolderIconsSubsystem::IterateOverWidgetsRecursively(const TArray<TSharedRe
 		for (int i = 0; i < Children->Num(); i++)
 		{
 			const TSharedRef<SWidget> ChildWidget = Children->GetChildAt(i);
-
 			WidgetsToCheck.Add(ChildWidget);
-
-			Iterator(ChildWidget);
 		}
 	}
+}
+
+TSharedRef<SWidget> UFolderIconsSubsystem::FindChildWidgetOfType(const TSharedRef<SWidget>& Parent, const FName& WidgetType)
+{
+	TSharedPtr<SWidget> Result;
+
+	TArray<TSharedRef<SWidget>> TopLevelWidgets;
+	TopLevelWidgets.Add(Parent);
+
+	IterateOverWidgetsRecursively(
+		TopLevelWidgets,
+		[&Result, WidgetType](const TSharedRef<SWidget>& Widget)
+		{
+			if (Widget->GetType() == WidgetType && Widget->GetVisibility() == EVisibility::Visible)
+			{
+				Result = Widget;
+			}
+		}
+	);
+
+	return Result.ToSharedRef();
 }
 
 TArray<TSharedRef<SAssetView>> UFolderIconsSubsystem::GetAllAssetViews()
 {
 	TArray<TSharedRef<SAssetView>> Result;
-	const FName AssetViewType = SAssetView::StaticWidgetClass().GetWidgetType();
 
 	TArray<TSharedRef<SWidget>> TopLevelWidgets;
 	TopLevelWidgets.Append(FSlateApplication::Get().GetTopLevelWindows());
 
 	IterateOverWidgetsRecursively(
 		TopLevelWidgets,
-		[&Result, AssetViewType](const TSharedRef<SWidget>& Widget)
+		[&Result](const TSharedRef<SWidget>& Widget)
 		{
-			if (Widget->GetType() == AssetViewType)
+			if (Widget->GetType() == TEXT("SAssetView"))
 			{
 				Result.Add(StaticCastSharedRef<SAssetView>(Widget));
 			}
@@ -243,7 +197,7 @@ TArray<FContentBrowserFolder> UFolderIconsSubsystem::GetAllFolders(const TArray<
 			}
 
 			// TODO: Check if we transform TEXT("SImage") to a template, static or a GET_CLASS_CHECKED
-			if (const TSharedPtr<SWidget> FoundImage = FindChildWidgetOfType<SImage>(Widget))
+			if (const TSharedPtr<SWidget> FoundImage = FindChildWidgetOfType(Widget, TEXT("SImage")))
 			{
 				Result.Emplace(ConvertVirtualPathToInvariantPathString(TagString), FoundImage.ToSharedRef());
 			}
@@ -256,12 +210,11 @@ TArray<FContentBrowserFolder> UFolderIconsSubsystem::GetAllFolders(const TArray<
 void UFolderIconsSubsystem::AssignIconAndColor(const FContentBrowserFolder& Folder)
 {
 	const TSharedRef<SImage> Image = StaticCastSharedRef<SImage>(Folder.Widget);
-	TWeakObjectPtr<UFolderIconsSubsystem> WeakThis = TWeakObjectPtr<UFolderIconsSubsystem>(this);
+	const bool bIsColumnView = Image->GetDesiredSize().X < 32.0 && Image->GetDesiredSize().Y < 32.0;
 	Image->SetImage(TAttribute<const FSlateBrush*>::CreateLambda(
-		[WeakThis, Folder]()
+		[Folder, bIsColumnView]()
 		{
-			const FSlateBrush* Brush = WeakThis.IsValid() ? WeakThis->GetIconForFolder(Folder.Path) : nullptr;
-			return Brush;
+			return Get().GetIconForFolder(Folder.Path, bIsColumnView);
 		}
 	));
 }

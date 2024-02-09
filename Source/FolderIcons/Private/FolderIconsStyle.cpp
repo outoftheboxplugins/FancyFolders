@@ -12,7 +12,7 @@ FFolderIconsStyle::FFolderIconsStyle() : FSlateStyleSet(TEXT("FolderIconsStyle")
 	for (const FString& File : FolderIcons)
 	{
 		const FName Property = *FPaths::GetBaseFilename(File, true);
-		Set(Property, new FSlateVectorImageBrush(File, FVector2D(64, 64)));
+		Set(Property, new FSlateVectorImageBrush(File, FVector2D(16, 16)));
 	}
 
 	FSlateStyleRegistry::RegisterSlateStyle(*this);
