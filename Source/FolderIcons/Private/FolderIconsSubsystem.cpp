@@ -28,6 +28,11 @@ namespace
 	}
 } // namespace
 
+FString FContentBrowserFolder::GetPackagePath() const
+{
+	return ConvertVirtualPathToInvariantPathString(VirtualPath);
+}
+
 UFolderIconsSubsystem& UFolderIconsSubsystem::Get()
 {
 	return *GEditor->GetEditorSubsystem<UFolderIconsSubsystem>();
@@ -199,7 +204,7 @@ TArray<FContentBrowserFolder> UFolderIconsSubsystem::GetAllFolders(const TArray<
 			// TODO: Check if we transform TEXT("SImage") to a template, static or a GET_CLASS_CHECKED
 			if (const TSharedPtr<SWidget> FoundImage = FindChildWidgetOfType(Widget, TEXT("SImage")))
 			{
-				Result.Emplace(ConvertVirtualPathToInvariantPathString(TagString), FoundImage.ToSharedRef());
+				Result.Emplace(TagString, FoundImage.ToSharedRef());
 			}
 		}
 	);
@@ -209,12 +214,18 @@ TArray<FContentBrowserFolder> UFolderIconsSubsystem::GetAllFolders(const TArray<
 
 void UFolderIconsSubsystem::AssignIconAndColor(const FContentBrowserFolder& Folder)
 {
+	const FContentBrowserItem ContentBrowserFolder = IContentBrowserDataModule::Get().GetSubsystem()->GetItemAtPath(FName(Folder.VirtualPath), EContentBrowserItemTypeFilter::IncludeFolders);
+	if (!ContentBrowserFolder.IsValid())
+	{
+		return;
+	}
+
 	const TSharedRef<SImage> Image = StaticCastSharedRef<SImage>(Folder.Widget);
 	const bool bIsColumnView = Image->GetDesiredSize().X < 32.0 && Image->GetDesiredSize().Y < 32.0;
 	Image->SetImage(TAttribute<const FSlateBrush*>::CreateLambda(
 		[Folder, bIsColumnView]()
 		{
-			return Get().GetIconForFolder(Folder.Path, bIsColumnView);
+			return Get().GetIconForFolder(Folder.GetPackagePath(), bIsColumnView);
 		}
 	));
 }

@@ -12,8 +12,10 @@ class FContentBrowserItemDataUpdate;
 
 struct FContentBrowserFolder
 {
-	FString Path;
+	FString VirtualPath;
 	TSharedRef<SWidget> Widget;
+
+	FString GetPackagePath() const;
 
 	bool operator==(const FContentBrowserFolder&) const = default;
 };
