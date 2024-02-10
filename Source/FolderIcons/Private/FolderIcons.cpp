@@ -9,15 +9,20 @@
 #include "FolderIconsStyle.h"
 #include "FolderIconsSubsystem.h"
 
-TArray<FString> FFolderIconsModule::GetFolderIconsOnDisk()
+TArray<FString> FFolderIconsModule::GetIconFoldersOnDisk()
 {
-	const FString ResourcesFolder = IPluginManager::Get().FindPlugin("FolderIcons")->GetBaseDir() / TEXT("Resources");
-	const FString IconsFolder = ResourcesFolder / TEXT("Icons");
+	const FString ResourcesFolder = IPluginManager::Get().FindPlugin("FolderIcons")->GetBaseDir() / TEXT("Resources") / TEXT("Icons") + TEXT("/");
+	const FString IconsFolder = ResourcesFolder + TEXT("*");
 
-	TArray<FString> FoundFiles;
-	IFileManager::Get().FindFilesRecursive(FoundFiles, *IconsFolder, TEXT("*.svg"), true, false);
+	TArray<FString> FoundDirectories;
+	IFileManager::Get().FindFiles(FoundDirectories, *IconsFolder, false, true);
 
-	return FoundFiles;
+	for (auto& Directory : FoundDirectories)
+	{
+		Directory.InsertAt(0, ResourcesFolder);
+	}
+
+	return FoundDirectories;
 }
 
 void FFolderIconsModule::StartupModule()
@@ -56,7 +61,7 @@ void FFolderIconsModule::BuildContextMenu(FMenuBuilder& MenuBuilder, UContentBro
 		return;
 	}
 
-	TArray<FString> IconsAvailable = GetFolderIconsOnDisk();
+	TArray<FString> IconsAvailable = GetIconFoldersOnDisk();
 	for (const FString& IconPath : IconsAvailable)
 	{
 		const FString DisplayName = FPaths::GetBaseFilename(IconPath);

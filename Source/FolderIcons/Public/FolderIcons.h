@@ -9,7 +9,7 @@ class UContentBrowserFolderContext;
 class FFolderIconsModule : public IModuleInterface
 {
 public:
-	static TArray<FString> GetFolderIconsOnDisk();
+	static TArray<FString> GetIconFoldersOnDisk();
 
 private:
 	// Begin IModuleInterface interface

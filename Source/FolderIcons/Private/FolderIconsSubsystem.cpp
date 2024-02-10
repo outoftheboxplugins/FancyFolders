@@ -68,7 +68,7 @@ const FSlateBrush* UFolderIconsSubsystem::GetIconForFolder(const FString& Virtua
 	{
 		if (Assigned.FolderName == VirtualPath)
 		{
-			return FFolderIconsStyle::Get().GetBrush(Assigned.Icon);
+			return Assigned.GetIcon(bIsColumnView);
 		}
 	}
 
@@ -78,7 +78,7 @@ const FSlateBrush* UFolderIconsSubsystem::GetIconForFolder(const FString& Virtua
 		const FString FolderName = FPaths::GetBaseFilename(VirtualPath);
 		if (FolderName == Preset.FolderName)
 		{
-			return FFolderIconsStyle::Get().GetBrush(Preset.Icon);
+			return Preset.GetIcon(bIsColumnView);
 		}
 	}
 

@@ -8,11 +8,16 @@
 
 FFolderIconsStyle::FFolderIconsStyle() : FSlateStyleSet(TEXT("FolderIconsStyle"))
 {
-	const TArray<FString> FolderIcons = FFolderIconsModule::GetFolderIconsOnDisk();
-	for (const FString& File : FolderIcons)
+	const TArray<FString> IconFolders = FFolderIconsModule::GetIconFoldersOnDisk();
+	for (const FString& Folder : IconFolders)
 	{
-		const FName Property = *FPaths::GetBaseFilename(File, true);
-		Set(Property, new FSlateVectorImageBrush(File, FVector2D(16, 16)));
+		const FString Icon = FPaths::GetBaseFilename(Folder, true);
+
+		const FName NormalIcon = *FString::Printf(TEXT("%s.Normal"), *Icon);
+		Set(NormalIcon, new FSlateVectorImageBrush(Folder / TEXT("Normal.svg"), FVector2D(64, 64)));
+
+		const FName ColumnIcon = *FString::Printf(TEXT("%s.Column"), *Icon);
+		Set(ColumnIcon, new FSlateVectorImageBrush(Folder / TEXT("Column.svg"), FVector2D(16, 16)));
 	}
 
 	FSlateStyleRegistry::RegisterSlateStyle(*this);
