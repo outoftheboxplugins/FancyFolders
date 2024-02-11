@@ -1,5 +1,6 @@
 ﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
+using System.IO;
 using UnrealBuildTool;
 
 public class FolderIcons : ModuleRules
@@ -7,7 +8,9 @@ public class FolderIcons : ModuleRules
 	public FolderIcons(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		
+
+		PrivateIncludePaths.Add(Path.Combine(EngineDirectory, "Source/Editor/ContentBrowser/Private"));
+
 		PublicIncludePaths.AddRange(
 			new string[] {
 				// ... add public include paths required here ...

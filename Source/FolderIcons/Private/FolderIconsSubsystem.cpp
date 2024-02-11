@@ -13,6 +13,7 @@
 #include "FolderIconsSettings.h"
 #include "FolderIconsStyle.h"
 #include "Interfaces/IMainFrameModule.h"
+#include "PathViewTypes.h"
 #include "SAssetView.h"
 
 namespace
@@ -65,15 +66,17 @@ void UFolderIconsSubsystem::OnPostTick(float DeltaTime)
 	RefreshAllFolders();
 }
 
-const FSlateBrush* UFolderIconsSubsystem::GetIconForFolder(const FString& VirtualPath, bool bIsColumnView) const
+const FSlateBrush* UFolderIconsSubsystem::GetIconForFolder(const FString& VirtualPath, bool bIsColumnView, TDelegate<bool()> GetOpenState) const
 {
 	const UFolderIconsSettings* const Settings = GetDefault<UFolderIconsSettings>();
+
+	const bool bIsOpen = GetOpenState.IsBound() && GetOpenState.Execute();
 
 	for (const FFolderIconPreset& Assigned : Settings->Assigned)
 	{
 		if (Assigned.FolderName == VirtualPath)
 		{
-			return Assigned.GetIcon(bIsColumnView);
+			return Assigned.GetIcon(bIsColumnView, bIsOpen);
 		}
 	}
 
@@ -83,14 +86,19 @@ const FSlateBrush* UFolderIconsSubsystem::GetIconForFolder(const FString& Virtua
 		const FString FolderName = FPaths::GetBaseFilename(VirtualPath);
 		if (FolderName == Preset.FolderName)
 		{
-			return Preset.GetIcon(bIsColumnView);
+			return Preset.GetIcon(bIsColumnView, bIsOpen);
 		}
 	}
 
-	const FSlateBrush* NormalViewIcon = FAppStyle::GetBrush("ContentBrowser.ListViewFolderIcon");
-	const FSlateBrush* ColumnViewIcon = FAppStyle::GetBrush("ContentBrowser.ColumnViewFolderIcon");
-
-	return bIsColumnView ? ColumnViewIcon : NormalViewIcon;
+	if (bIsColumnView)
+	{
+		if (bIsOpen)
+		{
+			return FAppStyle::GetBrush("ContentBrowser.AssetTreeFolderOpen");
+		}
+		return FAppStyle::GetBrush("ContentBrowser.AssetTreeFolderClosed");
+	}
+	return FAppStyle::GetBrush("ContentBrowser.ListViewFolderIcon");
 }
 
 void UFolderIconsSubsystem::RefreshAllFolders()
@@ -102,6 +110,47 @@ void UFolderIconsSubsystem::RefreshAllFolders()
 	for (const FContentBrowserFolder& Folder : Folders)
 	{
 		AssignIconAndColor(Folder);
+	}
+
+	// TODO: Below we have the pathview stuff:
+
+	class SMyCoolPath : public SPathView
+	{
+	public:
+		TMap<FName, TWeakPtr<FTreeItem>> MyCoolGetter() const { return TreeItemLookup; }
+	};
+
+	TArray<TSharedRef<SPathView>> PathWidgets = GetAllPathWidgets();
+	for (const TSharedRef<SPathView>& PathWidget : PathWidgets)
+	{
+		TMap<FName, TWeakPtr<FTreeItem>> Data = reinterpret_cast<SMyCoolPath*>(&PathWidget.Get())->MyCoolGetter();
+
+		const TSharedPtr<SWidget> FoundTreeView = FindChildWidgetOfType(PathWidget, TEXT("STreeView< TSharedPtr<FTreeItem> >"));
+		if (!FoundTreeView)
+		{
+			return;
+		}
+
+		TSharedPtr<STreeView<TSharedPtr<FTreeItem>>> TreeViewPtr = StaticCastSharedPtr<STreeView<TSharedPtr<FTreeItem>>>(FoundTreeView);
+		for (const TTuple<FName, TWeakPtr<FTreeItem>>& Entry : Data)
+		{
+			if (const TSharedPtr<ITableRow> Widget = TreeViewPtr->WidgetFromItem(Entry.Value.Pin()))
+			{
+				if (const TSharedPtr<SWidget> FoundImage = FindChildWidgetOfType(Widget->GetContent().ToSharedRef(), TEXT("SImage")))
+				{
+					FContentBrowserFolder Folder = {Entry.Key.ToString(), FoundImage.ToSharedRef()};
+					AssignIconAndColor(
+						Folder,
+						TDelegate<bool()>::CreateLambda(
+							[=]()
+							{
+								return TreeViewPtr->IsItemExpanded(Entry.Value.Pin());
+							}
+						)
+					);
+				}
+			}
+		}
 	}
 }
 
@@ -135,7 +184,7 @@ void UFolderIconsSubsystem::IterateOverWidgetsRecursively(const TArray<TSharedRe
 	}
 }
 
-TSharedRef<SWidget> UFolderIconsSubsystem::FindChildWidgetOfType(const TSharedRef<SWidget>& Parent, const FName& WidgetType)
+TSharedPtr<SWidget> UFolderIconsSubsystem::FindChildWidgetOfType(const TSharedRef<SWidget>& Parent, const FName& WidgetType)
 {
 	TSharedPtr<SWidget> Result;
 
@@ -153,7 +202,7 @@ TSharedRef<SWidget> UFolderIconsSubsystem::FindChildWidgetOfType(const TSharedRe
 		}
 	);
 
-	return Result.ToSharedRef();
+	return Result;
 }
 
 TArray<TSharedRef<SAssetView>> UFolderIconsSubsystem::GetAllAssetViews()
@@ -212,7 +261,7 @@ TArray<FContentBrowserFolder> UFolderIconsSubsystem::GetAllFolders(const TArray<
 	return Result;
 }
 
-void UFolderIconsSubsystem::AssignIconAndColor(const FContentBrowserFolder& Folder)
+void UFolderIconsSubsystem::AssignIconAndColor(const FContentBrowserFolder& Folder, TDelegate<bool()> GetIsOpen)
 {
 	const FContentBrowserItem ContentBrowserFolder = IContentBrowserDataModule::Get().GetSubsystem()->GetItemAtPath(FName(Folder.VirtualPath), EContentBrowserItemTypeFilter::IncludeFolders);
 	if (!ContentBrowserFolder.IsValid())
@@ -223,9 +272,30 @@ void UFolderIconsSubsystem::AssignIconAndColor(const FContentBrowserFolder& Fold
 	const TSharedRef<SImage> Image = StaticCastSharedRef<SImage>(Folder.Widget);
 	const bool bIsColumnView = Image->GetDesiredSize().X < 32.0 && Image->GetDesiredSize().Y < 32.0;
 	Image->SetImage(TAttribute<const FSlateBrush*>::CreateLambda(
-		[Folder, bIsColumnView]()
+		[Folder, bIsColumnView, GetIsOpen]()
 		{
-			return Get().GetIconForFolder(Folder.GetPackagePath(), bIsColumnView);
+			return Get().GetIconForFolder(Folder.GetPackagePath(), bIsColumnView, GetIsOpen);
 		}
 	));
+}
+
+TArray<TSharedRef<SPathView>> UFolderIconsSubsystem::GetAllPathWidgets()
+{
+	TArray<TSharedRef<SPathView>> Result;
+
+	TArray<TSharedRef<SWidget>> TopLevelWidgets;
+	TopLevelWidgets.Append(FSlateApplication::Get().GetTopLevelWindows());
+
+	IterateOverWidgetsRecursively(
+		TopLevelWidgets,
+		[&Result](const TSharedRef<SWidget>& Widget)
+		{
+			if (Widget->GetType() == TEXT("SPathView"))
+			{
+				Result.Add(StaticCastSharedRef<SPathView>(Widget));
+			}
+		}
+	);
+
+	return Result;
 }

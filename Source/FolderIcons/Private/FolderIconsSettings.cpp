@@ -4,9 +4,22 @@
 
 #include "FolderIconsStyle.h"
 
-const FSlateBrush* FFolderIconPreset::GetIcon(bool bIsColumnView) const
+const FSlateBrush* FFolderIconPreset::GetIcon(bool bIsColumnView, bool bIsOpen) const
 {
-	const FString IconType = bIsColumnView ? TEXT("Column") : TEXT("Normal");
+	const FString IconType = [=]()
+	{
+		if (bIsColumnView)
+		{
+			if (bIsOpen)
+			{
+				return TEXT("ColumnOpen");
+			}
+
+			return TEXT("ColumnClosed");
+		}
+		return TEXT("Normal");
+	}();
+
 	const FName Brush = *FString::Printf(TEXT("%s.%s"), *Icon.ToString(), *IconType);
 	return FFolderIconsStyle::Get().GetBrush(Brush);
 }

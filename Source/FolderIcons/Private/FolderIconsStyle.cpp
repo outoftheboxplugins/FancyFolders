@@ -16,8 +16,11 @@ FFolderIconsStyle::FFolderIconsStyle() : FSlateStyleSet(TEXT("FolderIconsStyle")
 		const FName NormalIcon = *FString::Printf(TEXT("%s.Normal"), *Icon);
 		Set(NormalIcon, new FSlateVectorImageBrush(Folder / TEXT("Normal.svg"), FVector2D(64, 64)));
 
-		const FName ColumnIcon = *FString::Printf(TEXT("%s.Column"), *Icon);
-		Set(ColumnIcon, new FSlateVectorImageBrush(Folder / TEXT("Column.svg"), FVector2D(16, 16)));
+		const FName ColumnOpenIcon = *FString::Printf(TEXT("%s.ColumnOpen"), *Icon);
+		Set(ColumnOpenIcon, new FSlateVectorImageBrush(Folder / TEXT("ColumnOpen.svg"), FVector2D(16, 16)));
+
+		const FName ColumnClosedIcon = *FString::Printf(TEXT("%s.ColumnClosed"), *Icon);
+		Set(ColumnClosedIcon, new FSlateVectorImageBrush(Folder / TEXT("ColumnClosed.svg"), FVector2D(16, 16)));
 	}
 
 	FSlateStyleRegistry::RegisterSlateStyle(*this);

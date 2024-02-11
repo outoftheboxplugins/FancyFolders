@@ -4,8 +4,9 @@
 
 #include <EditorSubsystem.h>
 
-#include "FolderIconsSubsystem.generated.h"
+#include "SPathView.h"
 
+#include "FolderIconsSubsystem.generated.h"
 
 class SAssetView;
 class FContentBrowserItemDataUpdate;
@@ -28,7 +29,7 @@ public:
 	static UFolderIconsSubsystem& Get();
 
 	void SetFoldersIcon(const FString& Icon, TArray<FString> Folders);
-	const FSlateBrush* GetIconForFolder(const FString& VirtualPath, bool bIsColumnView) const;
+	const FSlateBrush* GetIconForFolder(const FString& VirtualPath, bool bIsColumnView, TDelegate<bool()> GetOpenState) const;
 
 private:
 	// Begin UEditorSubsystem interface
@@ -40,11 +41,12 @@ private:
 	void RefreshAllFolders();
 	TArray<TSharedRef<SAssetView>> GetAllAssetViews();
 	TArray<FContentBrowserFolder> GetAllFolders(const TArray<TSharedRef<SAssetView>>& AssetViews);
-	void AssignIconAndColor(const FContentBrowserFolder& Folder);
+	void AssignIconAndColor(const FContentBrowserFolder& Folder, TDelegate<bool()> GetIsOpen = TDelegate<bool()>());
 
-	static TSharedRef<SWidget> FindChildWidgetOfType(const TSharedRef<SWidget>& Parent, const FName& WidgetType);
+	TArray<TSharedRef<SPathView>> GetAllPathWidgets();
+
+	static TSharedPtr<SWidget> FindChildWidgetOfType(const TSharedRef<SWidget>& Parent, const FName& WidgetType);
 	static void IterateOverWidgetsRecursively(const TArray<TSharedRef<SWidget>>& TopLevelWidgets, TFunctionRef<void(const TSharedRef<SWidget>& Widget)> Iterator);
-
 
 	TArray<TSharedRef<SAssetView>> AssetViewWidgets;
 };

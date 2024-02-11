@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="16"
+   height="16"
+   viewBox="0 0 16 16"
+   fill="none"
+   version="1.1"
+   id="svg2"
+   sodipodi:docname="Column.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="namedview2"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:zoom="36.65625"
+     inkscape:cx="8.2796249"
+     inkscape:cy="8.3887468"
+     inkscape:window-width="3440"
+     inkscape:window-height="1369"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
+  <path
+     d="M8 4L6.33 2.33C6.12 2.12 5.83 2 5.54 2H1.12C0.5 2 0 2.5 0 3.12V4H8Z"
+     fill="white"
+     id="path1" />
+  <path
+     d="M0 5V12.88C0 13.5 0.5 14 1.12 14H14.88C15.5 14 16 13.5 16 12.88V6.12C16 5.5 15.5 5 14.88 5H0Z"
+     fill="white"
+     id="path2" />
+  <path
+     sodipodi:type="star"
+     style="fill:#868686;fill-opacity:1"
+     id="path4"
+     inkscape:flatsided="false"
+     sodipodi:sides="5"
+     sodipodi:cx="7.6112533"
+     sodipodi:cy="9.0571184"
+     sodipodi:r1="3.7233603"
+     sodipodi:r2="1.8616802"
+     sodipodi:arg1="0.96247132"
+     sodipodi:arg2="1.5907898"
+     inkscape:rounded="0"
+     inkscape:randomized="0"
+     d="M 9.7391304,12.112532 7.5740343,10.918426 5.3629327,12.025024 5.8295428,9.5968969 4.0938376,7.8359719 6.5473146,7.5294118 7.6856914,5.3345023 l 1.0497221,2.238663 2.4392605,0.4043963 -1.8047129,1.69013 z"
+     inkscape:transform-center-x="-0.023002647"
+     inkscape:transform-center-y="-0.33360141" />
+</svg>

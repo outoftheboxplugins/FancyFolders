@@ -20,7 +20,7 @@ struct FFolderIconPreset
 	UPROPERTY(EditAnywhere, Category = "")
 	FName Icon;
 
-	const FSlateBrush* GetIcon(bool bIsColumnView) const;
+	const FSlateBrush* GetIcon(bool bIsColumnView, bool bIsOpen = false) const;
 };
 
 UCLASS(config = Editor, defaultconfig)
