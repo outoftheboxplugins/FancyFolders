@@ -1,23 +1,23 @@
 ﻿{
 	"FileVersion": 3,
-	"Version": 1,
 	"VersionName": "1.0",
+	"EngineVersion": "5.3",
 	"FriendlyName": "FancyFolders",
-	"Description": "",
-	"Category": "Other",
-	"CreatedBy": "",
-	"CreatedByURL": "",
+	"Description": "Set custom icons on folders and create automated rules for folder customization",
+	"Category": "Editor",
+	"CreatedBy": "Out-of-the-Box Plugins",
+	"CreatedByURL": "https://outofthebox-plugins.com",
 	"DocsURL": "",
 	"MarketplaceURL": "",
-	"CanContainContent": true,
-	"IsBetaVersion": false,
-	"IsExperimentalVersion": false,
-	"Installed": false,
+	"SupportURL": "https://discord.gg/2cD5MwB",
+	"EnabledByDefault": true,
+	"CanContainContent": false,
 	"Modules": [
 		{
 			"Name": "FancyFolders",
 			"Type": "Editor",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [ "Win64", "Mac", "Linux" ]
 		}
 	]
 }

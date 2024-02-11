@@ -1,63 +1,32 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Out-of-the-Box Plugins 2018-2024. All Rights Reserved.
 
-using System.IO;
+using System.IO; //TODO: this is only needed for the PrivateIncludePaths, if that gets deleted, delete this too.
 using UnrealBuildTool;
 
 public class FancyFolders : ModuleRules
 {
 	public FancyFolders(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
+		//TODO: Find out if we actually use this
 		PrivateIncludePaths.Add(Path.Combine(EngineDirectory, "Source/Editor/ContentBrowser/Private"));
 
-		PublicIncludePaths.AddRange(
-			new string[] {
-				// ... add public include paths required here ...
-			}
-			);
-				
-		
-		PrivateIncludePaths.AddRange(
-			new string[] {
-				// ... add other private include paths required here ...
-			}
-			);
-			
-		
-		PublicDependencyModuleNames.AddRange(
-			new string[]
-			{
-				"Core", "EditorStyle",
-				"Projects", "ContentBrowserData",
-				// ... add other public dependencies that you statically link with here ...
-			}
-			);
-			
-		
-		PrivateDependencyModuleNames.AddRange(
-			new string[]
-			{
+		//TODO: Clean this up at the end to see what we actually use.
+		PrivateDependencyModuleNames.AddRange(new []
+		{
+				"ContentBrowser",
+				"ContentBrowserData",
+				"Core",
 				"CoreUObject",
+				"DeveloperSettings",
+				"EditorStyle",
+				"EditorSubsystem",
 				"Engine",
+				"Projects", 
 				"Slate",
 				"SlateCore",
 				"ToolMenus",
-				"ContentBrowser",
-				"ContentBrowserData",
-				"DeveloperSettings",
-				"EditorSubsystem",
 				"UnrealEd",
-				// ... add private dependencies that you statically link with here ...	
-			}
-			);
-		
-		
-		DynamicallyLoadedModuleNames.AddRange(
-			new string[]
-			{
-				// ... add any modules that your module loads dynamically here ...
-			}
-			);
+		});
 	}
 }

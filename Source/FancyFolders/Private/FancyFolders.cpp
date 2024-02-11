@@ -6,7 +6,6 @@
 #include <Interfaces/IPluginManager.h>
 #include <ToolMenus.h>
 
-#include "FancyFoldersStyle.h"
 #include "FancyFoldersSubsystem.h"
 
 TArray<FString> FFancyFoldersModule::GetIconFoldersOnDisk()
@@ -64,17 +63,15 @@ void FFancyFoldersModule::BuildContextMenu(FMenuBuilder& MenuBuilder, UContentBr
 	TArray<FString> IconsAvailable = GetIconFoldersOnDisk();
 	for (const FString& IconPath : IconsAvailable)
 	{
-		const FString DisplayName = FPaths::GetBaseFilename(IconPath);
+		const FString IconName = FPaths::GetBaseFilename(IconPath);
 		MenuBuilder.AddMenuEntry(
-			FText::FromString(DisplayName),
-			FText::FromString(DisplayName),
-			// TODO: Maybe here we can display the raw image as a little thumbnail?
-			FSlateIcon(TEXT("FancyFoldersStyle"), FName(DisplayName)),
+			FText::FromString(IconName),
+			FText::FromString(IconName), // TODO: Improve tooltip message
+			FSlateIcon(), // TODO: Maybe here we can display the raw image as a little thumbnail?
 			FUIAction(FExecuteAction::CreateLambda(
 				[=, this]()
 				{
-					UFancyFoldersSubsystem* FancyFoldersSubsystem = GEditor->GetEditorSubsystem<UFancyFoldersSubsystem>();
-					FancyFoldersSubsystem->SetFoldersIcon(DisplayName, Context->SelectedPackagePaths);
+					UFancyFoldersSubsystem::Get().SetFoldersIcon(IconName, Context->SelectedPackagePaths);
 				}
 			))
 		);
