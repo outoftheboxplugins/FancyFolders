@@ -6,6 +6,7 @@
 #include <Interfaces/IPluginManager.h>
 #include <ToolMenus.h>
 
+#include "FancyFoldersSettings.h"
 #include "FancyFoldersSubsystem.h"
 
 TArray<FString> FFancyFoldersModule::GetIconFoldersOnDisk()
@@ -26,6 +27,9 @@ TArray<FString> FFancyFoldersModule::GetIconFoldersOnDisk()
 
 void FFancyFoldersModule::StartupModule()
 {
+	FPropertyEditorModule& PropertyModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	PropertyModule.RegisterCustomPropertyTypeLayout("FolderData", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FFolderDataCustomization::MakeInstance));
+
 	FToolMenuOwnerScoped ToolMenuOwnerScoped(this);
 	UToolMenu* Menu = UToolMenus::Get()->ExtendMenu("ContentBrowser.FolderContextMenu");
 	FToolMenuSection& Section = Menu->AddSection("FancyFolders", INVTEXT("Folder Icons"), FToolMenuInsert("PathViewFolderOptions", EToolMenuInsertType::After));
@@ -51,6 +55,11 @@ void FFancyFoldersModule::StartupModule()
 void FFancyFoldersModule::ShutdownModule()
 {
 	UToolMenus::UnregisterOwner(this);
+
+	if (FPropertyEditorModule* PropertyModule = FModuleManager::GetModulePtr<FPropertyEditorModule>("PropertyEditor"))
+	{
+		PropertyModule->UnregisterCustomPropertyTypeLayout("FolderData");
+	}
 }
 
 void FFancyFoldersModule::BuildContextMenu(FMenuBuilder& MenuBuilder, UContentBrowserFolderContext* Context)

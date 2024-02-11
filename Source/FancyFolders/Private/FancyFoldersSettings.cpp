@@ -2,6 +2,9 @@
 
 #include "FancyFoldersSettings.h"
 
+#include <DetailWidgetRow.h>
+#include <IDetailChildrenBuilder.h>
+
 #include "FancyFoldersStyle.h"
 
 EFolderState StateFromFlags(bool bIsColumnView, bool bIsOpen)
@@ -34,6 +37,30 @@ const FSlateBrush* FFolderData::GetIcon(EFolderState State) const
 
 	const FName Brush = *FString::Printf(TEXT("%s.%s"), *Icon.ToString(), *IconType);
 	return FFancyFoldersStyle::Get().GetBrush(Brush);
+}
+
+void FFolderDataCustomization::CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils)
+{
+}
+
+void FFolderDataCustomization::CustomizeChildren(TSharedRef<IPropertyHandle> StructPropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& StructCustomizationUtils)
+{
+	FolderIcon = StructPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FFolderData, Icon));
+
+	// clang-format off
+	ChildBuilder.AddCustomRow(StructPropertyHandle->GetPropertyDisplayName())
+	.NameContent()
+	[
+		FolderIcon->CreatePropertyNameWidget()
+	]
+	.ValueContent()
+	[
+		FolderIcon->CreatePropertyValueWidget()
+	];
+	// clang-format on
+
+	const TSharedRef<IPropertyHandle> FolderColor = StructPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FFolderData, Color)).ToSharedRef();
+	ChildBuilder.AddProperty(FolderColor);
 }
 
 const FSlateBrush* UFancyFoldersSettings::GetIconForPath(const FString& VirtualPath, bool bIsColumnView, bool bIsOpen) const

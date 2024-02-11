@@ -28,6 +28,17 @@ struct FFolderData
 	const FSlateBrush* GetIcon(EFolderState State) const;
 };
 
+class FFolderDataCustomization : public IPropertyTypeCustomization
+{
+public:
+	static TSharedRef<IPropertyTypeCustomization> MakeInstance() { return MakeShared<FFolderDataCustomization>(); }
+
+private:
+	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> StructPropertyHandle, class IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& StructCustomizationUtils) override;
+
+	TSharedPtr<IPropertyHandle> FolderIcon;
+};
 
 USTRUCT()
 struct FPathAssignedData
