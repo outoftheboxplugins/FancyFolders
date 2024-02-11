@@ -4,7 +4,7 @@
 
 #include <Engine/DeveloperSettings.h>
 
-#include "FolderIconsSettings.generated.h"
+#include "FancyFoldersSettings.generated.h"
 
 USTRUCT()
 struct FFolderIconPreset
@@ -24,7 +24,7 @@ struct FFolderIconPreset
 };
 
 UCLASS(config = Editor, defaultconfig)
-class UFolderIconsSettings : public UDeveloperSettings
+class UFancyFoldersSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
 

@@ -1,17 +1,17 @@
 ﻿// Copyright Out-of-the-Box Plugins 2018-2024. All Rights Reserved.
 
-#include "FolderIcons.h"
+#include "FancyFolders.h"
 
 #include <ContentBrowserMenuContexts.h>
 #include <Interfaces/IPluginManager.h>
 #include <ToolMenus.h>
 
-#include "FolderIconsStyle.h"
-#include "FolderIconsSubsystem.h"
+#include "FancyFoldersStyle.h"
+#include "FancyFoldersSubsystem.h"
 
-TArray<FString> FFolderIconsModule::GetIconFoldersOnDisk()
+TArray<FString> FFancyFoldersModule::GetIconFoldersOnDisk()
 {
-	const FString ResourcesFolder = IPluginManager::Get().FindPlugin("FolderIcons")->GetBaseDir() / TEXT("Resources") / TEXT("Icons") + TEXT("/");
+	const FString ResourcesFolder = IPluginManager::Get().FindPlugin("FancyFolders")->GetBaseDir() / TEXT("Resources") / TEXT("Icons") + TEXT("/");
 	const FString IconsFolder = ResourcesFolder + TEXT("*");
 
 	TArray<FString> FoundDirectories;
@@ -25,14 +25,14 @@ TArray<FString> FFolderIconsModule::GetIconFoldersOnDisk()
 	return FoundDirectories;
 }
 
-void FFolderIconsModule::StartupModule()
+void FFancyFoldersModule::StartupModule()
 {
 	FToolMenuOwnerScoped ToolMenuOwnerScoped(this);
 	UToolMenu* Menu = UToolMenus::Get()->ExtendMenu("ContentBrowser.FolderContextMenu");
-	FToolMenuSection& Section = Menu->AddSection("FolderIcons", INVTEXT("Folder Icons"), FToolMenuInsert("PathViewFolderOptions", EToolMenuInsertType::After));
+	FToolMenuSection& Section = Menu->AddSection("FancyFolders", INVTEXT("Folder Icons"), FToolMenuInsert("PathViewFolderOptions", EToolMenuInsertType::After));
 
 	Section.AddDynamicEntry(
-		"FolderIconsSelection",
+		"FancyFoldersSelection",
 		FNewToolMenuSectionDelegate::CreateLambda(
 			[this](FToolMenuSection& InSection)
 			{
@@ -42,19 +42,19 @@ void FFolderIconsModule::StartupModule()
 					"FolderIconOptions",
 					INVTEXT("Set Folder Icon"),
 					INVTEXT("Set a folder's icon"),
-					FNewToolMenuChoice(FNewMenuDelegate::CreateRaw(this, &FFolderIconsModule::BuildContextMenu, Context))
+					FNewToolMenuChoice(FNewMenuDelegate::CreateRaw(this, &FFancyFoldersModule::BuildContextMenu, Context))
 				);
 			}
 		)
 	);
 }
 
-void FFolderIconsModule::ShutdownModule()
+void FFancyFoldersModule::ShutdownModule()
 {
 	UToolMenus::UnregisterOwner(this);
 }
 
-void FFolderIconsModule::BuildContextMenu(FMenuBuilder& MenuBuilder, UContentBrowserFolderContext* Context)
+void FFancyFoldersModule::BuildContextMenu(FMenuBuilder& MenuBuilder, UContentBrowserFolderContext* Context)
 {
 	if (!Context || Context->NumAssetPaths <= 0)
 	{
@@ -69,16 +69,16 @@ void FFolderIconsModule::BuildContextMenu(FMenuBuilder& MenuBuilder, UContentBro
 			FText::FromString(DisplayName),
 			FText::FromString(DisplayName),
 			// TODO: Maybe here we can display the raw image as a little thumbnail?
-			FSlateIcon(TEXT("FolderIconsStyle"), FName(DisplayName)),
+			FSlateIcon(TEXT("FancyFoldersStyle"), FName(DisplayName)),
 			FUIAction(FExecuteAction::CreateLambda(
 				[=, this]()
 				{
-					UFolderIconsSubsystem* FolderIconsSubsystem = GEditor->GetEditorSubsystem<UFolderIconsSubsystem>();
-					FolderIconsSubsystem->SetFoldersIcon(DisplayName, Context->SelectedPackagePaths);
+					UFancyFoldersSubsystem* FancyFoldersSubsystem = GEditor->GetEditorSubsystem<UFancyFoldersSubsystem>();
+					FancyFoldersSubsystem->SetFoldersIcon(DisplayName, Context->SelectedPackagePaths);
 				}
 			))
 		);
 	}
 }
 
-IMPLEMENT_MODULE(FFolderIconsModule, FolderIcons)
+IMPLEMENT_MODULE(FFancyFoldersModule, FancyFolders)

@@ -6,7 +6,7 @@
 
 class UContentBrowserFolderContext;
 
-class FFolderIconsModule : public IModuleInterface
+class FFancyFoldersModule : public IModuleInterface
 {
 public:
 	static TArray<FString> GetIconFoldersOnDisk();

@@ -6,7 +6,7 @@
 
 #include "SPathView.h"
 
-#include "FolderIconsSubsystem.generated.h"
+#include "FancyFoldersSubsystem.generated.h"
 
 class SAssetView;
 class FContentBrowserItemDataUpdate;
@@ -22,11 +22,11 @@ struct FContentBrowserFolder
 };
 
 UCLASS()
-class UFolderIconsSubsystem : public UEditorSubsystem
+class UFancyFoldersSubsystem : public UEditorSubsystem
 {
 	GENERATED_BODY()
 public:
-	static UFolderIconsSubsystem& Get();
+	static UFancyFoldersSubsystem& Get();
 
 	void SetFoldersIcon(const FString& Icon, TArray<FString> Folders);
 	const FSlateBrush* GetIconForFolder(const FString& VirtualPath, bool bIsColumnView, TDelegate<bool()> GetOpenState) const;

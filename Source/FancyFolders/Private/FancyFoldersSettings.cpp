@@ -1,8 +1,8 @@
 ﻿// My super cool copyright notice
 
-#include "FolderIconsSettings.h"
+#include "FancyFoldersSettings.h"
 
-#include "FolderIconsStyle.h"
+#include "FancyFoldersStyle.h"
 
 const FSlateBrush* FFolderIconPreset::GetIcon(bool bIsColumnView, bool bIsOpen) const
 {
@@ -21,25 +21,25 @@ const FSlateBrush* FFolderIconPreset::GetIcon(bool bIsColumnView, bool bIsOpen) 
 	}();
 
 	const FName Brush = *FString::Printf(TEXT("%s.%s"), *Icon.ToString(), *IconType);
-	return FFolderIconsStyle::Get().GetBrush(Brush);
+	return FFancyFoldersStyle::Get().GetBrush(Brush);
 }
 
-FName UFolderIconsSettings::GetContainerName() const
+FName UFancyFoldersSettings::GetContainerName() const
 {
 	return TEXT("Editor");
 }
 
-FName UFolderIconsSettings::GetCategoryName() const
+FName UFancyFoldersSettings::GetCategoryName() const
 {
 	return TEXT("Out-of-the-Box Plugins");
 }
-FName UFolderIconsSettings::GetSectionName() const
+FName UFancyFoldersSettings::GetSectionName() const
 {
 	return TEXT("Folder Icons");
 }
 
 #if WITH_EDITOR
-FText UFolderIconsSettings::GetSectionText() const
+FText UFancyFoldersSettings::GetSectionText() const
 {
 	const FName DisplaySectionName = GetSectionName();
 	return FText::FromName(DisplaySectionName);

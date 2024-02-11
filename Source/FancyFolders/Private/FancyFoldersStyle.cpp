@@ -1,14 +1,14 @@
 ﻿// Copyright Out-of-the-Box Plugins 2018-2024. All Rights Reserved.
 
-#include "FolderIconsStyle.h"
+#include "FancyFoldersStyle.h"
 
 #include <Styling/SlateStyleRegistry.h>
 
-#include "FolderIcons.h"
+#include "FancyFolders.h"
 
-FFolderIconsStyle::FFolderIconsStyle() : FSlateStyleSet(TEXT("FolderIconsStyle"))
+FFancyFoldersStyle::FFancyFoldersStyle() : FSlateStyleSet(TEXT("FancyFoldersStyle"))
 {
-	const TArray<FString> IconFolders = FFolderIconsModule::GetIconFoldersOnDisk();
+	const TArray<FString> IconFolders = FFancyFoldersModule::GetIconFoldersOnDisk();
 	for (const FString& Folder : IconFolders)
 	{
 		const FString Icon = FPaths::GetBaseFilename(Folder, true);
@@ -26,13 +26,13 @@ FFolderIconsStyle::FFolderIconsStyle() : FSlateStyleSet(TEXT("FolderIconsStyle")
 	FSlateStyleRegistry::RegisterSlateStyle(*this);
 }
 
-FFolderIconsStyle& FFolderIconsStyle::Get()
+FFancyFoldersStyle& FFancyFoldersStyle::Get()
 {
-	static FFolderIconsStyle Inst;
+	static FFancyFoldersStyle Inst;
 	return Inst;
 }
 
-FFolderIconsStyle::~FFolderIconsStyle()
+FFancyFoldersStyle::~FFancyFoldersStyle()
 {
 	FSlateStyleRegistry::UnRegisterSlateStyle(*this);
 }

@@ -3,9 +3,9 @@
 using System.IO;
 using UnrealBuildTool;
 
-public class FolderIcons : ModuleRules
+public class FancyFolders : ModuleRules
 {
-	public FolderIcons(ReadOnlyTargetRules Target) : base(Target)
+	public FancyFolders(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 

@@ -1,6 +1,6 @@
 ﻿// Copyright Out-of-the-Box Plugins 2018-2024. All Rights Reserved.
 
-#include "FolderIconsSubsystem.h"
+#include "FancyFoldersSubsystem.h"
 
 #include <Algo/Compare.h>
 #include <ContentBrowserDataSubsystem.h>
@@ -10,8 +10,8 @@
 
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetRegistry/IAssetRegistry.h"
-#include "FolderIconsSettings.h"
-#include "FolderIconsStyle.h"
+#include "FancyFoldersSettings.h"
+#include "FancyFoldersStyle.h"
 #include "Interfaces/IMainFrameModule.h"
 #include "PathViewTypes.h"
 #include "SAssetView.h"
@@ -34,14 +34,14 @@ FString FContentBrowserFolder::GetPackagePath() const
 	return ConvertVirtualPathToInvariantPathString(VirtualPath);
 }
 
-UFolderIconsSubsystem& UFolderIconsSubsystem::Get()
+UFancyFoldersSubsystem& UFancyFoldersSubsystem::Get()
 {
-	return *GEditor->GetEditorSubsystem<UFolderIconsSubsystem>();
+	return *GEditor->GetEditorSubsystem<UFancyFoldersSubsystem>();
 }
 
-void UFolderIconsSubsystem::SetFoldersIcon(const FString& Icon, TArray<FString> Folders)
+void UFancyFoldersSubsystem::SetFoldersIcon(const FString& Icon, TArray<FString> Folders)
 {
-	UFolderIconsSettings* Settings = GetMutableDefault<UFolderIconsSettings>();
+	UFancyFoldersSettings* Settings = GetMutableDefault<UFancyFoldersSettings>();
 	for (const auto& Folder : Folders)
 	{
 		// TODO: This should take the color the folder currently has instead of hardcoded red
@@ -50,13 +50,13 @@ void UFolderIconsSubsystem::SetFoldersIcon(const FString& Icon, TArray<FString> 
 	}
 }
 
-void UFolderIconsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+void UFancyFoldersSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	FSlateApplication& SlateApp = FSlateApplication::Get();
 	SlateApp.OnPostTick().AddUObject(this, &ThisClass::OnPostTick);
 }
 
-void UFolderIconsSubsystem::OnPostTick(float DeltaTime)
+void UFancyFoldersSubsystem::OnPostTick(float DeltaTime)
 {
 	// TODO: Check if any of the AssetViewWidgets changed their type
 	for (const TSharedRef<SAssetView>& AssetView : AssetViewWidgets)
@@ -66,9 +66,9 @@ void UFolderIconsSubsystem::OnPostTick(float DeltaTime)
 	RefreshAllFolders();
 }
 
-const FSlateBrush* UFolderIconsSubsystem::GetIconForFolder(const FString& VirtualPath, bool bIsColumnView, TDelegate<bool()> GetOpenState) const
+const FSlateBrush* UFancyFoldersSubsystem::GetIconForFolder(const FString& VirtualPath, bool bIsColumnView, TDelegate<bool()> GetOpenState) const
 {
-	const UFolderIconsSettings* const Settings = GetDefault<UFolderIconsSettings>();
+	const UFancyFoldersSettings* const Settings = GetDefault<UFancyFoldersSettings>();
 
 	const bool bIsOpen = GetOpenState.IsBound() && GetOpenState.Execute();
 
@@ -101,7 +101,7 @@ const FSlateBrush* UFolderIconsSubsystem::GetIconForFolder(const FString& Virtua
 	return FAppStyle::GetBrush("ContentBrowser.ListViewFolderIcon");
 }
 
-void UFolderIconsSubsystem::RefreshAllFolders()
+void UFancyFoldersSubsystem::RefreshAllFolders()
 {
 	AssetViewWidgets = GetAllAssetViews();
 	TArray<FContentBrowserFolder> Folders = GetAllFolders(AssetViewWidgets);
@@ -154,7 +154,7 @@ void UFolderIconsSubsystem::RefreshAllFolders()
 	}
 }
 
-void UFolderIconsSubsystem::IterateOverWidgetsRecursively(const TArray<TSharedRef<SWidget>>& TopLevelWidgets, TFunctionRef<void(const TSharedRef<SWidget>& Widget)> Iterator)
+void UFancyFoldersSubsystem::IterateOverWidgetsRecursively(const TArray<TSharedRef<SWidget>>& TopLevelWidgets, TFunctionRef<void(const TSharedRef<SWidget>& Widget)> Iterator)
 {
 	TArray<TSharedRef<SWidget>> WidgetsToCheck;
 	WidgetsToCheck.Append(TopLevelWidgets);
@@ -184,7 +184,7 @@ void UFolderIconsSubsystem::IterateOverWidgetsRecursively(const TArray<TSharedRe
 	}
 }
 
-TSharedPtr<SWidget> UFolderIconsSubsystem::FindChildWidgetOfType(const TSharedRef<SWidget>& Parent, const FName& WidgetType)
+TSharedPtr<SWidget> UFancyFoldersSubsystem::FindChildWidgetOfType(const TSharedRef<SWidget>& Parent, const FName& WidgetType)
 {
 	TSharedPtr<SWidget> Result;
 
@@ -205,7 +205,7 @@ TSharedPtr<SWidget> UFolderIconsSubsystem::FindChildWidgetOfType(const TSharedRe
 	return Result;
 }
 
-TArray<TSharedRef<SAssetView>> UFolderIconsSubsystem::GetAllAssetViews()
+TArray<TSharedRef<SAssetView>> UFancyFoldersSubsystem::GetAllAssetViews()
 {
 	TArray<TSharedRef<SAssetView>> Result;
 
@@ -226,7 +226,7 @@ TArray<TSharedRef<SAssetView>> UFolderIconsSubsystem::GetAllAssetViews()
 	return Result;
 }
 
-TArray<FContentBrowserFolder> UFolderIconsSubsystem::GetAllFolders(const TArray<TSharedRef<SAssetView>>& AssetViews)
+TArray<FContentBrowserFolder> UFancyFoldersSubsystem::GetAllFolders(const TArray<TSharedRef<SAssetView>>& AssetViews)
 {
 	TArray<FContentBrowserFolder> Result;
 
@@ -261,7 +261,7 @@ TArray<FContentBrowserFolder> UFolderIconsSubsystem::GetAllFolders(const TArray<
 	return Result;
 }
 
-void UFolderIconsSubsystem::AssignIconAndColor(const FContentBrowserFolder& Folder, TDelegate<bool()> GetIsOpen)
+void UFancyFoldersSubsystem::AssignIconAndColor(const FContentBrowserFolder& Folder, TDelegate<bool()> GetIsOpen)
 {
 	const FContentBrowserItem ContentBrowserFolder = IContentBrowserDataModule::Get().GetSubsystem()->GetItemAtPath(FName(Folder.VirtualPath), EContentBrowserItemTypeFilter::IncludeFolders);
 	if (!ContentBrowserFolder.IsValid())
@@ -279,7 +279,7 @@ void UFolderIconsSubsystem::AssignIconAndColor(const FContentBrowserFolder& Fold
 	));
 }
 
-TArray<TSharedRef<SPathView>> UFolderIconsSubsystem::GetAllPathWidgets()
+TArray<TSharedRef<SPathView>> UFancyFoldersSubsystem::GetAllPathWidgets()
 {
 	TArray<TSharedRef<SPathView>> Result;
 
