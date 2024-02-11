@@ -13,9 +13,12 @@ class FContentBrowserItemDataUpdate;
 
 struct FContentBrowserFolder
 {
-	FString VirtualPath;
+	FName VirtualPath;
 	TSharedRef<SWidget> Widget;
 
+	/**
+	 * Converts a virtual path such as /All/Plugins -> /Plugins or /All/Game -> /Game
+	 */
 	FString GetPackagePath() const;
 
 	bool operator==(const FContentBrowserFolder&) const = default;
@@ -29,7 +32,7 @@ public:
 	static UFancyFoldersSubsystem& Get();
 
 	void SetFoldersIcon(const FString& Icon, TArray<FString> Folders);
-	const FSlateBrush* GetIconForFolder(const FString& VirtualPath, bool bIsColumnView, TDelegate<bool()> GetOpenState) const;
+	const FSlateBrush* GetIconForFolder(const FString& VirtualPath, bool bIsColumnView, const TDelegate<bool()>& GetOpenState) const;
 
 private:
 	// Begin UEditorSubsystem interface

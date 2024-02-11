@@ -2,36 +2,18 @@
 
 #include "FancyFoldersSubsystem.h"
 
-#include <Algo/Compare.h>
 #include <ContentBrowserDataSubsystem.h>
-#include <ContentBrowserItemData.h>
-#include <ContentBrowserModule.h>
 #include <IContentBrowserDataModule.h>
+#include <PathViewTypes.h>
+#include <SAssetView.h>
 
-#include "AssetRegistry/AssetRegistryModule.h"
-#include "AssetRegistry/IAssetRegistry.h"
 #include "FancyFoldersSettings.h"
-#include "FancyFoldersStyle.h"
-#include "Interfaces/IMainFrameModule.h"
-#include "PathViewTypes.h"
-#include "SAssetView.h"
-
-namespace
-{
-	/**
-	 * Converts a virtual path such as /All/Plugins -> /Plugins or /All/Game -> /Game
-	 */
-	FString ConvertVirtualPathToInvariantPathString(const FString& VirtualPath)
-	{
-		FName ConvertedPath;
-		IContentBrowserDataModule::Get().GetSubsystem()->TryConvertVirtualPath(FName(VirtualPath), ConvertedPath);
-		return ConvertedPath.ToString();
-	}
-} // namespace
 
 FString FContentBrowserFolder::GetPackagePath() const
 {
-	return ConvertVirtualPathToInvariantPathString(VirtualPath);
+	FName ConvertedPath;
+	IContentBrowserDataModule::Get().GetSubsystem()->TryConvertVirtualPath(VirtualPath, ConvertedPath);
+	return ConvertedPath.ToString();
 }
 
 UFancyFoldersSubsystem& UFancyFoldersSubsystem::Get()
@@ -46,7 +28,7 @@ void UFancyFoldersSubsystem::SetFoldersIcon(const FString& Icon, TArray<FString>
 	{
 		// TODO: This should take the color the folder currently has instead of hardcoded red
 		// TODO: We need some way to also listen for color changes so they can be shared between users
-		Settings->Assigned.Emplace(Folder, FLinearColor::Red, FName(Icon));
+		Settings->PathAssignments.Emplace(Folder, FFolderData{FLinearColor::Red, FName(Icon)});
 	}
 }
 
@@ -66,30 +48,18 @@ void UFancyFoldersSubsystem::OnPostTick(float DeltaTime)
 	RefreshAllFolders();
 }
 
-const FSlateBrush* UFancyFoldersSubsystem::GetIconForFolder(const FString& VirtualPath, bool bIsColumnView, TDelegate<bool()> GetOpenState) const
+const FSlateBrush* UFancyFoldersSubsystem::GetIconForFolder(const FString& VirtualPath, bool bIsColumnView, const TDelegate<bool()>& GetOpenState) const
 {
 	const UFancyFoldersSettings* const Settings = GetDefault<UFancyFoldersSettings>();
 
 	const bool bIsOpen = GetOpenState.IsBound() && GetOpenState.Execute();
 
-	for (const FFolderIconPreset& Assigned : Settings->Assigned)
+	if (const FSlateBrush* CustomIcon = Settings->GetIconForPath(VirtualPath, bIsColumnView, bIsOpen))
 	{
-		if (Assigned.FolderName == VirtualPath)
-		{
-			return Assigned.GetIcon(bIsColumnView, bIsOpen);
-		}
+		return CustomIcon;
 	}
 
-	for (const FFolderIconPreset& Preset : Settings->Presets)
-	{
-		// TODO: Maybe in the future, support regex matching?
-		const FString FolderName = FPaths::GetBaseFilename(VirtualPath);
-		if (FolderName == Preset.FolderName)
-		{
-			return Preset.GetIcon(bIsColumnView, bIsOpen);
-		}
-	}
-
+	// Return to default behavior - normal icon / c++ icon / developer icon
 	if (bIsColumnView)
 	{
 		if (bIsOpen)
@@ -138,7 +108,7 @@ void UFancyFoldersSubsystem::RefreshAllFolders()
 			{
 				if (const TSharedPtr<SWidget> FoundImage = FindChildWidgetOfType(Widget->GetContent().ToSharedRef(), TEXT("SImage")))
 				{
-					FContentBrowserFolder Folder = {Entry.Key.ToString(), FoundImage.ToSharedRef()};
+					FContentBrowserFolder Folder = {Entry.Key, FoundImage.ToSharedRef()};
 					AssignIconAndColor(
 						Folder,
 						TDelegate<bool()>::CreateLambda(
@@ -243,9 +213,9 @@ TArray<FContentBrowserFolder> UFancyFoldersSubsystem::GetAllFolders(const TArray
 				return;
 			}
 
-			const FString TagString = MetaTag->Tag.ToString();
+			const auto& PathTag = MetaTag->Tag;
 			// TODO: Find a better way to confirm this is a virtual path
-			if (!TagString.StartsWith("/"))
+			if (!PathTag.ToString().StartsWith("/"))
 			{
 				return;
 			}
@@ -253,7 +223,7 @@ TArray<FContentBrowserFolder> UFancyFoldersSubsystem::GetAllFolders(const TArray
 			// TODO: Check if we transform TEXT("SImage") to a template, static or a GET_CLASS_CHECKED
 			if (const TSharedPtr<SWidget> FoundImage = FindChildWidgetOfType(Widget, TEXT("SImage")))
 			{
-				Result.Emplace(TagString, FoundImage.ToSharedRef());
+				Result.Emplace(PathTag, FoundImage.ToSharedRef());
 			}
 		}
 	);
