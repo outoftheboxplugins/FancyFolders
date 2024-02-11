@@ -27,6 +27,7 @@ public class FancyFolders : ModuleRules
 				"SlateCore",
 				"ToolMenus",
 				"UnrealEd",
+				"InputCore",
 		});
 	}
 }

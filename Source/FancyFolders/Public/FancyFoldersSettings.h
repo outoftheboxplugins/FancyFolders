@@ -37,7 +37,11 @@ private:
 	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> StructPropertyHandle, class IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& StructCustomizationUtils) override;
 
+	void HandleSourceComboChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo);
+	FText GetCurrentIcon() const;
+
 	TSharedPtr<IPropertyHandle> FolderIcon;
+	TArray<TSharedPtr<FString>> IconsList;
 };
 
 USTRUCT()

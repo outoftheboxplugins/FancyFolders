@@ -5,6 +5,7 @@
 #include <DetailWidgetRow.h>
 #include <IDetailChildrenBuilder.h>
 
+#include "FancyFolders.h"
 #include "FancyFoldersStyle.h"
 
 EFolderState StateFromFlags(bool bIsColumnView, bool bIsOpen)
@@ -47,6 +48,12 @@ void FFolderDataCustomization::CustomizeChildren(TSharedRef<IPropertyHandle> Str
 {
 	FolderIcon = StructPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FFolderData, Icon));
 
+	for (const FString& IconAvailable : FFancyFoldersModule::GetIconFoldersOnDisk())
+	{
+		const FString IconName = FPaths::GetBaseFilename(IconAvailable);
+		IconsList.Add(MakeShared<FString>(IconName));
+	}
+
 	// clang-format off
 	ChildBuilder.AddCustomRow(StructPropertyHandle->GetPropertyDisplayName())
 	.NameContent()
@@ -55,12 +62,35 @@ void FFolderDataCustomization::CustomizeChildren(TSharedRef<IPropertyHandle> Str
 	]
 	.ValueContent()
 	[
-		FolderIcon->CreatePropertyValueWidget()
+		SNew(SComboBox<TSharedPtr<FString>>)
+				.OptionsSource(&IconsList)
+				.OnSelectionChanged(this, &FFolderDataCustomization::HandleSourceComboChanged)
+				.OnGenerateWidget_Lambda([](TSharedPtr<FString> Item)
+				{
+					return SNew(STextBlock).Text(FText::FromString(*Item));
+				})
+				.Content()
+				[
+					SNew(STextBlock)
+					.Text(this, &FFolderDataCustomization::GetCurrentIcon)
+				]
 	];
 	// clang-format on
 
 	const TSharedRef<IPropertyHandle> FolderColor = StructPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FFolderData, Color)).ToSharedRef();
 	ChildBuilder.AddProperty(FolderColor);
+}
+
+void FFolderDataCustomization::HandleSourceComboChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo)
+{
+	FolderIcon->SetValue(*Item);
+}
+
+FText FFolderDataCustomization::GetCurrentIcon() const
+{
+	FString IconValue;
+	FolderIcon->GetValueAsDisplayString(IconValue);
+	return FText::FromString(IconValue);
 }
 
 const FSlateBrush* UFancyFoldersSettings::GetIconForPath(const FString& VirtualPath, bool bIsColumnView, bool bIsOpen) const
