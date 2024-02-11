@@ -69,7 +69,7 @@ void FFolderDataCustomization::CustomizeChildren(TSharedRef<IPropertyHandle> Str
 		.HAlign(HAlign_Left)
 		[
 			SNew(SImage)
-			.Image(FFancyFoldersStyle::Get().GetBrush(TEXT("Star.Normal")))
+			.Image(this, &FFolderDataCustomization::GetCurrentBrush)
 			.ColorAndOpacity(this, &FFolderDataCustomization::GetCurrentColor)
 		]
 
@@ -110,10 +110,19 @@ FText FFolderDataCustomization::GetCurrentIcon() const
 
 FSlateColor FFolderDataCustomization::GetCurrentColor() const
 {
-	FDirectoryPath MyPath("/Game/AAA");
-	FVector4 ColorValue;
-	FolderColor->GetValue(ColorValue);
-	return FSlateColor(FLinearColor(ColorValue));
+	void* Data;
+	FolderColor->GetValueData(Data);
+
+	const FLinearColor* ColorData = static_cast<FLinearColor*>(Data);
+	return FSlateColor(*ColorData);
+}
+
+const FSlateBrush* FFolderDataCustomization::GetCurrentBrush() const
+{
+	FString IconValue;
+	FolderIcon->GetValueAsDisplayString(IconValue);
+
+	return FFancyFoldersStyle::Get().GetBrush(*FString::Printf(TEXT("%s.Normal"), *IconValue));
 }
 
 const FSlateBrush* UFancyFoldersSettings::GetIconForPath(const FString& VirtualPath, bool bIsColumnView, bool bIsOpen) const

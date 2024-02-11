@@ -20,10 +20,10 @@ struct FFolderData
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, Category = "")
-	FLinearColor Color;
+	FLinearColor Color = FLinearColor::White;
 
 	UPROPERTY(EditAnywhere, Category = "")
-	FName Icon;
+	FName Icon = TEXT("Developer");
 
 	const FSlateBrush* GetIcon(EFolderState State) const;
 };
@@ -40,6 +40,7 @@ private:
 	void HandleSourceComboChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo);
 	FText GetCurrentIcon() const;
 	FSlateColor GetCurrentColor() const;
+	const FSlateBrush* GetCurrentBrush() const;
 
 	TSharedPtr<IPropertyHandle> FolderIcon;
 	TSharedPtr<IPropertyHandle> FolderColor;
