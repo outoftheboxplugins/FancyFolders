@@ -39,8 +39,10 @@ private:
 
 	void HandleSourceComboChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo);
 	FText GetCurrentIcon() const;
+	FSlateColor GetCurrentColor() const;
 
 	TSharedPtr<IPropertyHandle> FolderIcon;
+	TSharedPtr<IPropertyHandle> FolderColor;
 	TArray<TSharedPtr<FString>> IconsList;
 };
 
