@@ -2,6 +2,7 @@
 
 #include "FancyFoldersSubsystem.h"
 
+#include <ContentBrowserDataSource.h>
 #include <ContentBrowserDataSubsystem.h>
 #include <IContentBrowserDataModule.h>
 #include <PathViewTypes.h>
@@ -9,11 +10,130 @@
 
 #include "FancyFoldersSettings.h"
 
+// TODO: Add option to clear data - icon & color
+// TODO: On startup we should transform all the currently assigned colors to rules in the settings
+// TODO: We need some way to also listen for color changes so they can be shared between users
+// TODO: On Tick - check if any of the AssetViewWidgets changed their type
+
+namespace Helpers
+{
+	void IterateOverWidgetsRecursively(const TArray<TSharedRef<SWidget>>& TopLevelWidgets, TFunctionRef<void(const TSharedRef<SWidget>& Widget)> Iterator)
+	{
+		TArray<TSharedRef<SWidget>> WidgetsToCheck;
+		WidgetsToCheck.Append(TopLevelWidgets);
+
+		while (!WidgetsToCheck.IsEmpty())
+		{
+			const TSharedRef<SWidget> CurrentWidget = WidgetsToCheck.Pop();
+			Iterator(CurrentWidget);
+
+			if (CurrentWidget->GetType() == TEXT("SWindow"))
+			{
+				const TSharedRef<SWindow> WidgetAsWindow = StaticCastSharedRef<SWindow>(CurrentWidget);
+				WidgetsToCheck.Append(WidgetAsWindow->GetChildWindows());
+			}
+
+			FChildren* Children = CurrentWidget->GetChildren();
+			if (!Children)
+			{
+				continue;
+			}
+
+			for (int i = 0; i < Children->Num(); i++)
+			{
+				const TSharedRef<SWidget> ChildWidget = Children->GetChildAt(i);
+				WidgetsToCheck.Add(ChildWidget);
+			}
+		}
+	}
+
+	template <typename T>
+	TSharedPtr<T> FindChildWidgetOfType(const TSharedRef<SWidget>& Parent, const FName& WidgetType = T::StaticWidgetClass().GetWidgetType())
+	{
+		TSharedPtr<SWidget> Result;
+
+		TArray<TSharedRef<SWidget>> TopLevelWidgets;
+		TopLevelWidgets.Add(Parent);
+
+		IterateOverWidgetsRecursively(
+			TopLevelWidgets,
+			[&Result, WidgetType](const TSharedRef<SWidget>& Widget)
+			{
+				if (Widget->GetType() == WidgetType && Widget->GetVisibility() == EVisibility::Visible)
+				{
+					Result = Widget;
+				}
+			}
+		);
+
+		return StaticCastSharedPtr<T>(Result);
+	}
+
+	TMap<FName, TWeakPtr<FTreeItem>> GetInternalPathData(const TSharedRef<SPathView>& PathView)
+	{
+		class SInternalAccessPathView : public SPathView
+		{
+		public:
+			TMap<FName, TWeakPtr<FTreeItem>> MyCoolGetter() const { return TreeItemLookup; }
+		};
+
+		TMap<FName, TWeakPtr<FTreeItem>> Data = reinterpret_cast<SInternalAccessPathView*>(&PathView.Get())->MyCoolGetter();
+		return Data;
+	}
+
+	bool IsItemDeveloperContent(const FContentBrowserItem& InItem)
+	{
+		const FContentBrowserItemDataAttributeValue IsDeveloperAttributeValue = InItem.GetItemAttribute(ContentBrowserItemAttributes::ItemIsDeveloperContent);
+		return IsDeveloperAttributeValue.IsValid() && IsDeveloperAttributeValue.GetValue<bool>();
+	}
+
+	bool IsItemCodeContent(const FContentBrowserItem& InItem)
+	{
+		return EnumHasAnyFlags(InItem.GetItemCategory(), EContentBrowserItemFlags::Category_Class);
+	}
+
+	FLinearColor GetCurrentFolderColor(const FString& FolderPath)
+	{
+		TOptional<FLinearColor> FolderColor = AssetViewUtils::GetPathColor(FolderPath);
+		if (FolderColor.IsSet())
+		{
+			return FolderColor.GetValue();
+		}
+
+		return AssetViewUtils::GetDefaultColor();
+	}
+} // namespace Helpers
+
+bool FContentBrowserFolder::IsOpenNow() const
+{
+	if (!GetFolderState.IsBound())
+	{
+		return false;
+	}
+
+	return GetFolderState.Execute();
+}
+
+bool FContentBrowserFolder::IsColumnViewNow() const
+{
+	return FolderImage->GetDesiredSize().X < 32.0 && FolderImage->GetDesiredSize().Y < 32.0;
+}
+
 FString FContentBrowserFolder::GetPackagePath() const
 {
 	FName ConvertedPath;
-	IContentBrowserDataModule::Get().GetSubsystem()->TryConvertVirtualPath(VirtualPath, ConvertedPath);
+	IContentBrowserDataModule::Get().GetSubsystem()->TryConvertVirtualPath(FolderPath, ConvertedPath);
 	return ConvertedPath.ToString();
+}
+
+FContentBrowserItem FContentBrowserFolder::GetContentBrowserItem() const
+{
+	return IContentBrowserDataModule::Get().GetSubsystem()->GetItemAtPath(FName(FolderPath), EContentBrowserItemTypeFilter::IncludeFolders);
+}
+
+bool FContentBrowserFolder::operator==(const FContentBrowserFolder& Other) const
+{
+	return FolderImage == Other.FolderImage;
 }
 
 UFancyFoldersSubsystem& UFancyFoldersSubsystem::Get()
@@ -24,11 +144,10 @@ UFancyFoldersSubsystem& UFancyFoldersSubsystem::Get()
 void UFancyFoldersSubsystem::SetFoldersIcon(const FString& Icon, TArray<FString> Folders)
 {
 	UFancyFoldersSettings* Settings = GetMutableDefault<UFancyFoldersSettings>();
-	for (const auto& Folder : Folders)
+	for (const FString& Folder : Folders)
 	{
-		// TODO: This should take the color the folder currently has instead of hardcoded red
-		// TODO: We need some way to also listen for color changes so they can be shared between users
-		Settings->PathAssignments.Emplace(Folder, FFolderData{FName(Icon), FLinearColor::Red});
+		const FLinearColor FolderColor = Helpers::GetCurrentFolderColor(Folder);
+		Settings->PathAssignments.Emplace(Folder, FFolderData{FName(Icon), FolderColor});
 	}
 }
 
@@ -40,42 +159,79 @@ void UFancyFoldersSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UFancyFoldersSubsystem::OnPostTick(float DeltaTime)
 {
-	// TODO: Check if any of the AssetViewWidgets changed their type
-	for (const TSharedRef<SAssetView>& AssetView : AssetViewWidgets)
-	{
-	}
-
 	RefreshAllFolders();
 }
 
-const FSlateBrush* UFancyFoldersSubsystem::GetIconForFolder(FString VirtualPath, bool bIsColumnView, TDelegate<bool()> GetOpenState) const
+void UFancyFoldersSubsystem::AssignIconAndColor(const FContentBrowserFolder& Folder)
+{
+	const FContentBrowserItem ContentBrowserFolder = Folder.GetContentBrowserItem();
+	if (!ContentBrowserFolder.IsValid())
+	{
+		return;
+	}
+
+	const TSharedRef<SImage> Image = Folder.FolderImage;
+	Image->SetImage(TAttribute<const FSlateBrush*>::Create(TAttribute<const FSlateBrush*>::FGetter::CreateUObject(this, &ThisClass::GetIconForFolder, Folder)));
+	Image->SetColorAndOpacity(TAttribute<FSlateColor>::Create(TAttribute<FSlateColor>::FGetter::CreateUObject(this, &ThisClass::GetColorForFolder, Folder)));
+}
+
+const FSlateBrush* UFancyFoldersSubsystem::GetIconForFolder(FContentBrowserFolder Folder) const
 {
 	const UFancyFoldersSettings* const Settings = GetDefault<UFancyFoldersSettings>();
 
-	const bool bIsOpen = GetOpenState.IsBound() && GetOpenState.Execute();
+	const bool bIsOpen = Folder.IsOpenNow();
+	const bool bIsColumnView = Folder.IsColumnViewNow();
 
-	if (const FSlateBrush* CustomIcon = Settings->GetIconForPath(VirtualPath, bIsColumnView, bIsOpen))
+	if (const FSlateBrush* CustomIcon = Settings->GetIconForPath(Folder.GetPackagePath(), bIsColumnView, bIsOpen))
 	{
 		return CustomIcon;
 	}
 
-	// Return to default behavior - normal icon / c++ icon / developer icon
+	const FContentBrowserItem ContentBrowserFolder = Folder.GetContentBrowserItem();
+	const bool bCodeFolder = Helpers::IsItemCodeContent(ContentBrowserFolder);
+	const bool bDeveloperFolder = Helpers::IsItemDeveloperContent(ContentBrowserFolder);
+
+	const FSlateBrush* FolderBrush;
+	const FSlateBrush* FolderOpenBrush;
+	const FSlateBrush* FolderClosedBrush;
+
+	if (bCodeFolder)
+	{
+		FolderBrush = FAppStyle::GetBrush("ContentBrowser.ListViewCodeFolderIcon");
+		FolderOpenBrush = FAppStyle::GetBrush("ContentBrowser.AssetTreeFolderOpenCode");
+		FolderClosedBrush = FAppStyle::GetBrush("ContentBrowser.AssetTreeFolderClosedCode");
+	}
+	else if (bDeveloperFolder)
+	{
+		FolderBrush = FAppStyle::GetBrush("ContentBrowser.ListViewDeveloperFolderIcon");
+		FolderOpenBrush = FAppStyle::GetBrush("ContentBrowser.AssetTreeFolderOpenDeveloper");
+		FolderClosedBrush = FAppStyle::GetBrush("ContentBrowser.AssetTreeFolderClosedDeveloper");
+	}
+	else
+	{
+		FolderBrush = FAppStyle::GetBrush("ContentBrowser.ListViewFolderIcon");
+		FolderOpenBrush = FAppStyle::GetBrush("ContentBrowser.AssetTreeFolderOpen");
+		FolderClosedBrush = FAppStyle::GetBrush("ContentBrowser.AssetTreeFolderClosed");
+	}
+
 	if (bIsColumnView)
 	{
 		if (bIsOpen)
 		{
-			return FAppStyle::GetBrush("ContentBrowser.AssetTreeFolderOpen");
+			return FolderOpenBrush;
 		}
-		return FAppStyle::GetBrush("ContentBrowser.AssetTreeFolderClosed");
+
+		return FolderClosedBrush;
 	}
-	return FAppStyle::GetBrush("ContentBrowser.ListViewFolderIcon");
+
+	return FolderBrush;
 }
 
-FSlateColor UFancyFoldersSubsystem::GetColorForFolder(FString VirtualPath) const
+FSlateColor UFancyFoldersSubsystem::GetColorForFolder(FContentBrowserFolder Folder) const
 {
 	const UFancyFoldersSettings* const Settings = GetDefault<UFancyFoldersSettings>();
 
-	if (const TOptional<FLinearColor> CustomColor = Settings->GetColorForPath(VirtualPath))
+	if (const TOptional<FLinearColor> CustomColor = Settings->GetColorForPath(Folder.GetPackagePath()))
 	{
 		return CustomColor.GetValue();
 	}
@@ -85,106 +241,65 @@ FSlateColor UFancyFoldersSubsystem::GetColorForFolder(FString VirtualPath) const
 
 void UFancyFoldersSubsystem::RefreshAllFolders()
 {
-	AssetViewWidgets = GetAllAssetViews();
-	TArray<FContentBrowserFolder> Folders = GetAllFolders(AssetViewWidgets);
+	RefreshAssetViewFolders();
+	RefreshPathViewFolders();
+}
 
-	// TODO: Find some way to prevent duplicates
-	for (const FContentBrowserFolder& Folder : Folders)
-	{
-		AssignIconAndColor(Folder);
-	}
+void UFancyFoldersSubsystem::RefreshAssetViewFolders()
+{
+	TArray<TSharedRef<SWidget>> AssetViewWidgets = TArray<TSharedRef<SWidget>>(GetAllAssetViews());
 
-	// TODO: Below we have the pathview stuff:
+	Helpers::IterateOverWidgetsRecursively(
+		AssetViewWidgets,
+		[this](const TSharedRef<SWidget>& Widget)
+		{
+			const TSharedPtr<FTagMetaData> MetaTag = Widget->GetMetaData<FTagMetaData>();
+			if (!MetaTag)
+			{
+				return;
+			}
 
-	class SMyCoolPath : public SPathView
-	{
-	public:
-		TMap<FName, TWeakPtr<FTreeItem>> MyCoolGetter() const { return TreeItemLookup; }
-	};
+			const FName& PathTag = MetaTag->Tag;
+			// TODO: Find a better way to confirm this is a virtual path
+			if (!PathTag.ToString().StartsWith("/"))
+			{
+				return;
+			}
 
+			if (const TSharedPtr<SImage> FoundImage = Helpers::FindChildWidgetOfType<SImage>(Widget))
+			{
+				FContentBrowserFolder Folder = {PathTag, FoundImage.ToSharedRef()};
+				AssignIconAndColor(Folder);
+			}
+		}
+	);
+}
+
+void UFancyFoldersSubsystem::RefreshPathViewFolders()
+{
 	TArray<TSharedRef<SPathView>> PathWidgets = GetAllPathWidgets();
 	for (const TSharedRef<SPathView>& PathWidget : PathWidgets)
 	{
-		TMap<FName, TWeakPtr<FTreeItem>> Data = reinterpret_cast<SMyCoolPath*>(&PathWidget.Get())->MyCoolGetter();
+		TMap<FName, TWeakPtr<FTreeItem>> Data = Helpers::GetInternalPathData(PathWidget);
 
-		const TSharedPtr<SWidget> FoundTreeView = FindChildWidgetOfType(PathWidget, TEXT("STreeView< TSharedPtr<FTreeItem> >"));
-		if (!FoundTreeView)
+		const TSharedPtr<STreeView<TSharedPtr<FTreeItem>>> TreeViewPtr = Helpers::FindChildWidgetOfType<STreeView<TSharedPtr<FTreeItem>>>(PathWidget, TEXT("STreeView< TSharedPtr<FTreeItem> >"));
+		if (!TreeViewPtr)
 		{
 			return;
 		}
 
-		TSharedPtr<STreeView<TSharedPtr<FTreeItem>>> TreeViewPtr = StaticCastSharedPtr<STreeView<TSharedPtr<FTreeItem>>>(FoundTreeView);
 		for (const TTuple<FName, TWeakPtr<FTreeItem>>& Entry : Data)
 		{
 			if (const TSharedPtr<ITableRow> Widget = TreeViewPtr->WidgetFromItem(Entry.Value.Pin()))
 			{
-				if (const TSharedPtr<SWidget> FoundImage = FindChildWidgetOfType(Widget->GetContent().ToSharedRef(), TEXT("SImage")))
+				if (const TSharedPtr<SImage> FoundImage = Helpers::FindChildWidgetOfType<SImage>(Widget->GetContent().ToSharedRef()))
 				{
 					FContentBrowserFolder Folder = {Entry.Key, FoundImage.ToSharedRef()};
-					AssignIconAndColor(
-						Folder,
-						TDelegate<bool()>::CreateLambda(
-							[=]()
-							{
-								return TreeViewPtr->IsItemExpanded(Entry.Value.Pin());
-							}
-						)
-					);
+					AssignIconAndColor(Folder);
 				}
 			}
 		}
 	}
-}
-
-void UFancyFoldersSubsystem::IterateOverWidgetsRecursively(const TArray<TSharedRef<SWidget>>& TopLevelWidgets, TFunctionRef<void(const TSharedRef<SWidget>& Widget)> Iterator)
-{
-	TArray<TSharedRef<SWidget>> WidgetsToCheck;
-	WidgetsToCheck.Append(TopLevelWidgets);
-
-	while (!WidgetsToCheck.IsEmpty())
-	{
-		const TSharedRef<SWidget> CurrentWidget = WidgetsToCheck.Pop();
-		Iterator(CurrentWidget);
-
-		if (CurrentWidget->GetType() == TEXT("SWindow"))
-		{
-			const TSharedRef<SWindow> WidgetAsWindow = StaticCastSharedRef<SWindow>(CurrentWidget);
-			WidgetsToCheck.Append(WidgetAsWindow->GetChildWindows());
-		}
-
-		FChildren* Children = CurrentWidget->GetChildren();
-		if (!Children)
-		{
-			continue;
-		}
-
-		for (int i = 0; i < Children->Num(); i++)
-		{
-			const TSharedRef<SWidget> ChildWidget = Children->GetChildAt(i);
-			WidgetsToCheck.Add(ChildWidget);
-		}
-	}
-}
-
-TSharedPtr<SWidget> UFancyFoldersSubsystem::FindChildWidgetOfType(const TSharedRef<SWidget>& Parent, const FName& WidgetType)
-{
-	TSharedPtr<SWidget> Result;
-
-	TArray<TSharedRef<SWidget>> TopLevelWidgets;
-	TopLevelWidgets.Add(Parent);
-
-	IterateOverWidgetsRecursively(
-		TopLevelWidgets,
-		[&Result, WidgetType](const TSharedRef<SWidget>& Widget)
-		{
-			if (Widget->GetType() == WidgetType && Widget->GetVisibility() == EVisibility::Visible)
-			{
-				Result = Widget;
-			}
-		}
-	);
-
-	return Result;
 }
 
 TArray<TSharedRef<SAssetView>> UFancyFoldersSubsystem::GetAllAssetViews()
@@ -194,7 +309,7 @@ TArray<TSharedRef<SAssetView>> UFancyFoldersSubsystem::GetAllAssetViews()
 	TArray<TSharedRef<SWidget>> TopLevelWidgets;
 	TopLevelWidgets.Append(FSlateApplication::Get().GetTopLevelWindows());
 
-	IterateOverWidgetsRecursively(
+	Helpers::IterateOverWidgetsRecursively(
 		TopLevelWidgets,
 		[&Result](const TSharedRef<SWidget>& Widget)
 		{
@@ -208,58 +323,6 @@ TArray<TSharedRef<SAssetView>> UFancyFoldersSubsystem::GetAllAssetViews()
 	return Result;
 }
 
-TArray<FContentBrowserFolder> UFancyFoldersSubsystem::GetAllFolders(const TArray<TSharedRef<SAssetView>>& AssetViews)
-{
-	TArray<FContentBrowserFolder> Result;
-
-	TArray<TSharedRef<SWidget>> TopLevelWidgets;
-	TopLevelWidgets.Append(AssetViews);
-
-	IterateOverWidgetsRecursively(
-		TopLevelWidgets,
-		[&Result](const TSharedRef<SWidget>& Widget)
-		{
-			const TSharedPtr<FTagMetaData> MetaTag = Widget->GetMetaData<FTagMetaData>();
-			if (!MetaTag)
-			{
-				return;
-			}
-
-			const auto& PathTag = MetaTag->Tag;
-			// TODO: Find a better way to confirm this is a virtual path
-			if (!PathTag.ToString().StartsWith("/"))
-			{
-				return;
-			}
-
-			// TODO: Check if we transform TEXT("SImage") to a template, static or a GET_CLASS_CHECKED
-			if (const TSharedPtr<SWidget> FoundImage = FindChildWidgetOfType(Widget, TEXT("SImage")))
-			{
-				Result.Emplace(PathTag, FoundImage.ToSharedRef());
-			}
-		}
-	);
-
-	return Result;
-}
-
-void UFancyFoldersSubsystem::AssignIconAndColor(const FContentBrowserFolder& Folder, TDelegate<bool()> GetIsOpen)
-{
-	const FContentBrowserItem ContentBrowserFolder = IContentBrowserDataModule::Get().GetSubsystem()->GetItemAtPath(FName(Folder.VirtualPath), EContentBrowserItemTypeFilter::IncludeFolders);
-	if (!ContentBrowserFolder.IsValid())
-	{
-		return;
-	}
-
-	const TSharedRef<SImage> Image = StaticCastSharedRef<SImage>(Folder.Widget);
-
-	const FString VirtualPath = Folder.GetPackagePath();
-	const bool bIsColumnView = Image->GetDesiredSize().X < 32.0 && Image->GetDesiredSize().Y < 32.0;
-
-	Image->SetImage(TAttribute<const FSlateBrush*>::Create(TAttribute<const FSlateBrush*>::FGetter::CreateUObject(this, &ThisClass::GetIconForFolder, VirtualPath, bIsColumnView, GetIsOpen)));
-	Image->SetColorAndOpacity(TAttribute<FSlateColor>::Create(TAttribute<FSlateColor>::FGetter::CreateUObject(this, &ThisClass::GetColorForFolder, VirtualPath)));
-}
-
 TArray<TSharedRef<SPathView>> UFancyFoldersSubsystem::GetAllPathWidgets()
 {
 	TArray<TSharedRef<SPathView>> Result;
@@ -267,7 +330,7 @@ TArray<TSharedRef<SPathView>> UFancyFoldersSubsystem::GetAllPathWidgets()
 	TArray<TSharedRef<SWidget>> TopLevelWidgets;
 	TopLevelWidgets.Append(FSlateApplication::Get().GetTopLevelWindows());
 
-	IterateOverWidgetsRecursively(
+	Helpers::IterateOverWidgetsRecursively(
 		TopLevelWidgets,
 		[&Result](const TSharedRef<SWidget>& Widget)
 		{

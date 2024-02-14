@@ -11,17 +11,23 @@
 class SAssetView;
 class FContentBrowserItemDataUpdate;
 
+using FOnGetFolderState = TDelegate<bool()>;
+
 struct FContentBrowserFolder
 {
-	FName VirtualPath;
-	TSharedRef<SWidget> Widget;
+	FName FolderPath;
+	TSharedRef<SImage> FolderImage;
+	FOnGetFolderState GetFolderState;
 
+	bool IsOpenNow() const;
+	bool IsColumnViewNow() const;
 	/**
 	 * Converts a virtual path such as /All/Plugins -> /Plugins or /All/Game -> /Game
 	 */
 	FString GetPackagePath() const;
+	FContentBrowserItem GetContentBrowserItem() const;
 
-	bool operator==(const FContentBrowserFolder&) const = default;
+	bool operator==(const FContentBrowserFolder& Other) const;
 };
 
 UCLASS()
@@ -32,8 +38,6 @@ public:
 	static UFancyFoldersSubsystem& Get();
 
 	void SetFoldersIcon(const FString& Icon, TArray<FString> Folders);
-	const FSlateBrush* GetIconForFolder(FString VirtualPath, bool bIsColumnView, TDelegate<bool()> GetOpenState) const;
-	FSlateColor GetColorForFolder(FString VirtualPath) const;
 
 private:
 	// Begin UEditorSubsystem interface
@@ -42,15 +46,14 @@ private:
 
 	void OnPostTick(float DeltaTime);
 
+	void AssignIconAndColor(const FContentBrowserFolder& Folder);
+	const FSlateBrush* GetIconForFolder(FContentBrowserFolder Folder) const;
+	FSlateColor GetColorForFolder(FContentBrowserFolder Folder) const;
+
 	void RefreshAllFolders();
+	void RefreshAssetViewFolders();
+	void RefreshPathViewFolders();
+
 	TArray<TSharedRef<SAssetView>> GetAllAssetViews();
-	TArray<FContentBrowserFolder> GetAllFolders(const TArray<TSharedRef<SAssetView>>& AssetViews);
-	void AssignIconAndColor(const FContentBrowserFolder& Folder, TDelegate<bool()> GetIsOpen = TDelegate<bool()>());
-
 	TArray<TSharedRef<SPathView>> GetAllPathWidgets();
-
-	static TSharedPtr<SWidget> FindChildWidgetOfType(const TSharedRef<SWidget>& Parent, const FName& WidgetType);
-	static void IterateOverWidgetsRecursively(const TArray<TSharedRef<SWidget>>& TopLevelWidgets, TFunctionRef<void(const TSharedRef<SWidget>& Widget)> Iterator);
-
-	TArray<TSharedRef<SAssetView>> AssetViewWidgets;
 };

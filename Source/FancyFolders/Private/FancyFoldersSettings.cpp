@@ -2,10 +2,10 @@
 
 #include "FancyFoldersSettings.h"
 
+#include <AssetViewUtils.h>
 #include <DetailWidgetRow.h>
 #include <IDetailChildrenBuilder.h>
 
-#include "AssetViewUtils.h"
 #include "FancyFolders.h"
 #include "FancyFoldersStyle.h"
 
@@ -203,6 +203,7 @@ FName UFancyFoldersSettings::GetCategoryName() const
 {
 	return TEXT("Out-of-the-Box Plugins");
 }
+
 FName UFancyFoldersSettings::GetSectionName() const
 {
 	return TEXT("Folder Icons");
