@@ -32,7 +32,8 @@ public:
 	static UFancyFoldersSubsystem& Get();
 
 	void SetFoldersIcon(const FString& Icon, TArray<FString> Folders);
-	const FSlateBrush* GetIconForFolder(const FString& VirtualPath, bool bIsColumnView, const TDelegate<bool()>& GetOpenState) const;
+	const FSlateBrush* GetIconForFolder(FString VirtualPath, bool bIsColumnView, TDelegate<bool()> GetOpenState) const;
+	FSlateColor GetColorForFolder(FString VirtualPath) const;
 
 private:
 	// Begin UEditorSubsystem interface

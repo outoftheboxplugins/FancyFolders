@@ -28,7 +28,7 @@ void UFancyFoldersSubsystem::SetFoldersIcon(const FString& Icon, TArray<FString>
 	{
 		// TODO: This should take the color the folder currently has instead of hardcoded red
 		// TODO: We need some way to also listen for color changes so they can be shared between users
-		Settings->PathAssignments.Emplace(Folder, FFolderData{FLinearColor::Red, FName(Icon)});
+		Settings->PathAssignments.Emplace(Folder, FFolderData{FName(Icon), FLinearColor::Red});
 	}
 }
 
@@ -48,7 +48,7 @@ void UFancyFoldersSubsystem::OnPostTick(float DeltaTime)
 	RefreshAllFolders();
 }
 
-const FSlateBrush* UFancyFoldersSubsystem::GetIconForFolder(const FString& VirtualPath, bool bIsColumnView, const TDelegate<bool()>& GetOpenState) const
+const FSlateBrush* UFancyFoldersSubsystem::GetIconForFolder(FString VirtualPath, bool bIsColumnView, TDelegate<bool()> GetOpenState) const
 {
 	const UFancyFoldersSettings* const Settings = GetDefault<UFancyFoldersSettings>();
 
@@ -69,6 +69,18 @@ const FSlateBrush* UFancyFoldersSubsystem::GetIconForFolder(const FString& Virtu
 		return FAppStyle::GetBrush("ContentBrowser.AssetTreeFolderClosed");
 	}
 	return FAppStyle::GetBrush("ContentBrowser.ListViewFolderIcon");
+}
+
+FSlateColor UFancyFoldersSubsystem::GetColorForFolder(FString VirtualPath) const
+{
+	const UFancyFoldersSettings* const Settings = GetDefault<UFancyFoldersSettings>();
+
+	if (const TOptional<FLinearColor> CustomColor = Settings->GetColorForPath(VirtualPath))
+	{
+		return CustomColor.GetValue();
+	}
+
+	return AssetViewUtils::GetDefaultColor();
 }
 
 void UFancyFoldersSubsystem::RefreshAllFolders()
@@ -240,13 +252,12 @@ void UFancyFoldersSubsystem::AssignIconAndColor(const FContentBrowserFolder& Fol
 	}
 
 	const TSharedRef<SImage> Image = StaticCastSharedRef<SImage>(Folder.Widget);
+
+	const FString VirtualPath = Folder.GetPackagePath();
 	const bool bIsColumnView = Image->GetDesiredSize().X < 32.0 && Image->GetDesiredSize().Y < 32.0;
-	Image->SetImage(TAttribute<const FSlateBrush*>::CreateLambda(
-		[Folder, bIsColumnView, GetIsOpen]()
-		{
-			return Get().GetIconForFolder(Folder.GetPackagePath(), bIsColumnView, GetIsOpen);
-		}
-	));
+
+	Image->SetImage(TAttribute<const FSlateBrush*>::Create(TAttribute<const FSlateBrush*>::FGetter::CreateUObject(this, &ThisClass::GetIconForFolder, VirtualPath, bIsColumnView, GetIsOpen)));
+	Image->SetColorAndOpacity(TAttribute<FSlateColor>::Create(TAttribute<FSlateColor>::FGetter::CreateUObject(this, &ThisClass::GetColorForFolder, VirtualPath)));
 }
 
 TArray<TSharedRef<SPathView>> UFancyFoldersSubsystem::GetAllPathWidgets()

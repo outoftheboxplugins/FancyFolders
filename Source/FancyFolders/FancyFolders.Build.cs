@@ -14,20 +14,21 @@ public class FancyFolders : ModuleRules
 		//TODO: Clean this up at the end to see what we actually use.
 		PrivateDependencyModuleNames.AddRange(new []
 		{
-				"ContentBrowser",
-				"ContentBrowserData",
-				"Core",
-				"CoreUObject",
-				"DeveloperSettings",
-				"EditorStyle",
-				"EditorSubsystem",
-				"Engine",
-				"Projects", 
-				"Slate",
-				"SlateCore",
-				"ToolMenus",
-				"UnrealEd",
-				"InputCore",
+			"AssetTools",
+			"ContentBrowser",
+			"ContentBrowserData",
+			"Core",
+			"CoreUObject",
+			"DeveloperSettings",
+			"EditorStyle",
+			"EditorSubsystem",
+			"Engine",
+			"Projects", 
+			"Slate",
+			"SlateCore",
+			"ToolMenus",
+			"UnrealEd",
+			"InputCore",
 		});
 	}
 }

@@ -19,11 +19,14 @@ struct FFolderData
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, Category = "")
-	FLinearColor Color = FLinearColor::White;
+	FFolderData();
+	FFolderData(const FName& InIcon, const FLinearColor& InColor);
 
 	UPROPERTY(EditAnywhere, Category = "")
-	FName Icon = TEXT("Developer");
+	FName Icon;
+
+	UPROPERTY(EditAnywhere, Category = "")
+	FLinearColor Color;
 
 	const FSlateBrush* GetIcon(EFolderState State) const;
 };
@@ -83,13 +86,15 @@ struct FFolderPresetData
 	FFolderData Data;
 };
 
-UCLASS(config = Editor, defaultconfig)
+UCLASS(config = FancyFolders, defaultconfig)
 class UFancyFoldersSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
 
 public:
+	TOptional<FFolderData> GetDataForPath(const FString& VirtualPath) const;
 	const FSlateBrush* GetIconForPath(const FString& VirtualPath, bool bIsColumnView, bool bIsOpen) const;
+	TOptional<FLinearColor> GetColorForPath(const FString& VirtualPath) const;
 
 	UPROPERTY(EditAnywhere, config, Category = "")
 	TArray<FPathAssignedData> PathAssignments;

@@ -5,6 +5,7 @@
 #include <DetailWidgetRow.h>
 #include <IDetailChildrenBuilder.h>
 
+#include "AssetViewUtils.h"
 #include "FancyFolders.h"
 #include "FancyFoldersStyle.h"
 
@@ -16,6 +17,18 @@ EFolderState StateFromFlags(bool bIsColumnView, bool bIsOpen)
 	}
 
 	return EFolderState::Normal;
+}
+
+FFolderData::FFolderData()
+{
+	Icon = TEXT("Default");
+	Color = AssetViewUtils::GetDefaultColor();
+}
+
+FFolderData::FFolderData(const FName& InIcon, const FLinearColor& InColor)
+{
+	Icon = InIcon;
+	Color = InColor;
 }
 
 const FSlateBrush* FFolderData::GetIcon(EFolderState State) const
@@ -125,15 +138,13 @@ const FSlateBrush* FFolderDataCustomization::GetCurrentBrush() const
 	return FFancyFoldersStyle::Get().GetBrush(*FString::Printf(TEXT("%s.Normal"), *IconValue));
 }
 
-const FSlateBrush* UFancyFoldersSettings::GetIconForPath(const FString& VirtualPath, bool bIsColumnView, bool bIsOpen) const
+TOptional<FFolderData> UFancyFoldersSettings::GetDataForPath(const FString& VirtualPath) const
 {
-	const EFolderState FolderState = StateFromFlags(bIsColumnView, bIsOpen);
-
 	for (const auto& PathAssigned : PathAssignments)
 	{
 		if (PathAssigned.Path == VirtualPath)
 		{
-			return PathAssigned.Data.GetIcon(FolderState);
+			return PathAssigned.Data;
 		}
 	}
 
@@ -144,7 +155,7 @@ const FSlateBrush* UFancyFoldersSettings::GetIconForPath(const FString& VirtualP
 		const FRegexPattern FolderPattern(FolderPreset.FolderRegex);
 		if (FRegexMatcher(FolderPattern, FolderName).FindNext())
 		{
-			return FolderPreset.Data.GetIcon(FolderState);
+			return FolderPreset.Data;
 		}
 	}
 
@@ -153,11 +164,34 @@ const FSlateBrush* UFancyFoldersSettings::GetIconForPath(const FString& VirtualP
 		const FRegexPattern FolderPattern(PathPreset.PathRegex);
 		if (FRegexMatcher(FolderPattern, VirtualPath).FindNext())
 		{
-			return PathPreset.Data.GetIcon(FolderState);
+			return PathPreset.Data;
 		}
 	}
 
-	return nullptr;
+	return {};
+}
+
+const FSlateBrush* UFancyFoldersSettings::GetIconForPath(const FString& VirtualPath, bool bIsColumnView, bool bIsOpen) const
+{
+	const TOptional<FFolderData> DataForPath = GetDataForPath(VirtualPath);
+	if (!DataForPath)
+	{
+		return nullptr;
+	}
+
+	const EFolderState FolderState = StateFromFlags(bIsColumnView, bIsOpen);
+	return DataForPath.GetValue().GetIcon(FolderState);
+}
+
+TOptional<FLinearColor> UFancyFoldersSettings::GetColorForPath(const FString& VirtualPath) const
+{
+	const TOptional<FFolderData> DataForPath = GetDataForPath(VirtualPath);
+	if (!DataForPath)
+	{
+		return {};
+	}
+
+	return DataForPath.GetValue().Color;
 }
 
 FName UFancyFoldersSettings::GetContainerName() const
