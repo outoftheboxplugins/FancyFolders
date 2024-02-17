@@ -75,8 +75,8 @@ void FFancyFoldersModule::BuildContextMenu(FMenuBuilder& MenuBuilder, UContentBr
 		const FString IconName = FPaths::GetBaseFilename(IconPath);
 		MenuBuilder.AddMenuEntry(
 			FText::FromString(IconName),
-			FText::FromString(IconName), // TODO: Improve tooltip message
-			FSlateIcon(), // TODO: Maybe here we can display the raw image as a little thumbnail?
+			FText::Format(INVTEXT("Set {0} as the folder's icon."), FText::FromString(IconName)),
+			FSlateIcon(),
 			FUIAction(FExecuteAction::CreateLambda(
 				[=, this]()
 				{
