@@ -91,17 +91,6 @@ namespace Helpers
 	{
 		return EnumHasAnyFlags(InItem.GetItemCategory(), EContentBrowserItemFlags::Category_Class);
 	}
-
-	FLinearColor GetCurrentFolderColor(const FString& FolderPath)
-	{
-		TOptional<FLinearColor> FolderColor = AssetViewUtils::GetPathColor(FolderPath);
-		if (FolderColor.IsSet())
-		{
-			return FolderColor.GetValue();
-		}
-
-		return AssetViewUtils::GetDefaultColor();
-	}
 } // namespace Helpers
 
 bool FContentBrowserFolder::IsOpenNow() const
@@ -143,11 +132,10 @@ UFancyFoldersSubsystem& UFancyFoldersSubsystem::Get()
 
 void UFancyFoldersSubsystem::SetFoldersIcon(const FString& Icon, TArray<FString> Folders)
 {
-	UFancyFoldersSettings* Settings = GetMutableDefault<UFancyFoldersSettings>();
 	for (const FString& Folder : Folders)
 	{
-		const FLinearColor FolderColor = Helpers::GetCurrentFolderColor(Folder);
-		Settings->PathAssignments.Emplace(Folder, FFolderData{FName(Icon), FolderColor});
+		UFancyFoldersSettings* Settings = GetMutableDefault<UFancyFoldersSettings>();
+		Settings->UpdateOrCreateAssignmentIcon(Folder, FName(Icon));
 	}
 }
 

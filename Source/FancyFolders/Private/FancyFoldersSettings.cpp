@@ -193,6 +193,45 @@ TOptional<FLinearColor> UFancyFoldersSettings::GetColorForPath(const FString& Vi
 
 	return DataForPath.GetValue().Color;
 }
+void UFancyFoldersSettings::UpdateOrCreateAssignmentIcon(const FString& Path, const FName& Icon)
+{
+	FPathAssignedData* CurrentAssignment = PathAssignments.FindByPredicate(
+		[Path](const FPathAssignedData& Data)
+		{
+			return Data.Path == Path;
+		}
+	);
+
+	if (CurrentAssignment)
+	{
+		CurrentAssignment->Data.Icon = Icon;
+	}
+	else
+	{
+		FPathAssignedData NewAssignment(Path, {Icon, AssetViewUtils::GetDefaultColor()});
+		PathAssignments.Emplace(NewAssignment);
+	}
+}
+
+void UFancyFoldersSettings::UpdateOrCreateAssignmentColor(const FString& Path, const FLinearColor& Color)
+{
+	FPathAssignedData* CurrentAssignment = PathAssignments.FindByPredicate(
+		[Path](const FPathAssignedData& Data)
+		{
+			return Data.Path == Path;
+		}
+	);
+
+	if (CurrentAssignment)
+	{
+		CurrentAssignment->Data.Color = Color;
+	}
+	else
+	{
+		FPathAssignedData NewAssignment(Path, {FName("Default"), Color});
+		PathAssignments.Emplace(NewAssignment);
+	}
+}
 
 FName UFancyFoldersSettings::GetContainerName() const
 {

@@ -96,6 +96,9 @@ public:
 	const FSlateBrush* GetIconForPath(const FString& VirtualPath, bool bIsColumnView, bool bIsOpen) const;
 	TOptional<FLinearColor> GetColorForPath(const FString& VirtualPath) const;
 
+	void UpdateOrCreateAssignmentIcon(const FString& Path, const FName& Icon);
+	void UpdateOrCreateAssignmentColor(const FString& Path, const FLinearColor& Color);
+
 	UPROPERTY(EditAnywhere, config, Category = "")
 	TArray<FPathAssignedData> PathAssignments;
 
