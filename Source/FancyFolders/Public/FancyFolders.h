@@ -6,9 +6,15 @@
 
 class UContentBrowserFolderContext;
 
+/**
+ * Module responsible for allowing developers to set icons to folders
+ */
 class FFancyFoldersModule : public IModuleInterface
 {
 public:
+	/**
+	 * Returns all the available icons on disk from the Resources folder
+	 */
 	static TArray<FString> GetIconFoldersOnDisk();
 
 private:
@@ -16,9 +22,12 @@ private:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 	// End IModuleInterface interface
-
 	/**
-	 * Callback executed to dynamically build a folder's right click menu
+	 * Callback executed when the context menu is built to inject the IconSelection section
+	 */
+	void ExtendFolderContextMenu(UToolMenu* InMenu);
+	/**
+	 * Callback executed to build the IconSelection entries in the context menu
 	 */
 	void BuildContextMenu(FMenuBuilder& MenuBuilder, UContentBrowserFolderContext* Context);
 };

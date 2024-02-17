@@ -3,8 +3,7 @@
 #pragma once
 
 #include <EditorSubsystem.h>
-
-#include "SPathView.h"
+#include <SPathView.h>
 
 #include "FancyFoldersSubsystem.generated.h"
 

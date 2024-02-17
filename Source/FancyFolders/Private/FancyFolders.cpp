@@ -32,24 +32,7 @@ void FFancyFoldersModule::StartupModule()
 
 	FToolMenuOwnerScoped ToolMenuOwnerScoped(this);
 	UToolMenu* Menu = UToolMenus::Get()->ExtendMenu("ContentBrowser.FolderContextMenu");
-	FToolMenuSection& Section = Menu->AddSection("FancyFolders", INVTEXT("Folder Icons"), FToolMenuInsert("PathViewFolderOptions", EToolMenuInsertType::After));
-
-	Section.AddDynamicEntry(
-		"FancyFoldersSelection",
-		FNewToolMenuSectionDelegate::CreateLambda(
-			[this](FToolMenuSection& InSection)
-			{
-				UContentBrowserFolderContext* Context = InSection.FindContext<UContentBrowserFolderContext>();
-
-				InSection.AddSubMenu(
-					"FolderIconOptions",
-					INVTEXT("Set Folder Icon"),
-					INVTEXT("Set a folder's icon"),
-					FNewToolMenuChoice(FNewMenuDelegate::CreateRaw(this, &FFancyFoldersModule::BuildContextMenu, Context))
-				);
-			}
-		)
-	);
+	Menu->AddDynamicSection("FancyFolders", FNewToolMenuDelegate::CreateRaw(this, &FFancyFoldersModule::ExtendFolderContextMenu));
 }
 
 void FFancyFoldersModule::ShutdownModule()
@@ -85,6 +68,30 @@ void FFancyFoldersModule::BuildContextMenu(FMenuBuilder& MenuBuilder, UContentBr
 			))
 		);
 	}
+}
+
+void FFancyFoldersModule::ExtendFolderContextMenu(UToolMenu* InMenu)
+{
+	FToolMenuSection& Section = InMenu->FindOrAddSection("PathViewFolderOptions");
+
+	Section.AddDynamicEntry(
+		"FancyFoldersSelection",
+		FNewToolMenuSectionDelegate::CreateLambda(
+			[this](FToolMenuSection& InSection)
+			{
+				UContentBrowserFolderContext* Context = InSection.FindContext<UContentBrowserFolderContext>();
+
+				InSection.AddSubMenu(
+					"FolderIconOptions",
+					INVTEXT("Set Folder Icon"),
+					INVTEXT("Set a folder's icon"),
+					FNewToolMenuChoice(FNewMenuDelegate::CreateRaw(this, &FFancyFoldersModule::BuildContextMenu, Context)),
+					false,
+					FSlateIcon(FAppStyle::Get().GetStyleSetName(), "Icons.FolderOpen")
+				);
+			}
+		)
+	);
 }
 
 IMPLEMENT_MODULE(FFancyFoldersModule, FancyFolders)
