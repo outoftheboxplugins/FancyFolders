@@ -56,4 +56,8 @@ private:
 
 	TArray<TSharedRef<SAssetView>> GetAllAssetViews();
 	TArray<TSharedRef<SPathView>> GetAllPathWidgets();
+
+	void SyncFolderColorData();
+
+	TMap<FString, FLinearColor> CachedPathColors;
 };

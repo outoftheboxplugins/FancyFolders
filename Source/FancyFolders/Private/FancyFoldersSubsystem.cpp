@@ -91,6 +91,26 @@ namespace Helpers
 	{
 		return EnumHasAnyFlags(InItem.GetItemCategory(), EContentBrowserItemFlags::Category_Class);
 	}
+
+	template <typename T, typename U>
+	TArray<TPair<T, U>> GetDifference(const TMap<T, U>& Lhs, const TMap<T, U>& Rhs, bool bIncludeDifferent)
+	{
+		TArray<TPair<T, U>> Result;
+		for (auto It = Lhs.CreateConstIterator(); It; ++It)
+		{
+			auto RightIt = Rhs.Find(It->Key);
+			if (!RightIt)
+			{
+				Result.Emplace(It->Key, It->Value);
+			}
+			else if (bIncludeDifferent && *RightIt != It->Value)
+			{
+				Result.Emplace(It->Key, It->Value);
+			}
+		}
+
+		return Result;
+	}
 } // namespace Helpers
 
 bool FContentBrowserFolder::IsOpenNow() const
@@ -147,6 +167,8 @@ void UFancyFoldersSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UFancyFoldersSubsystem::OnPostTick(float DeltaTime)
 {
+	SyncFolderColorData();
+
 	RefreshAllFolders();
 }
 
@@ -330,4 +352,46 @@ TArray<TSharedRef<SPathView>> UFancyFoldersSubsystem::GetAllPathWidgets()
 	);
 
 	return Result;
+}
+
+void UFancyFoldersSubsystem::SyncFolderColorData()
+{
+	TMap<FString, FLinearColor> CurrentPathColors;
+	{
+		TArray<FString> Section;
+		GConfig->GetSection(TEXT("PathColor"), Section, GEditorPerProjectIni);
+
+		for (int32 SectionIndex = 0; SectionIndex < Section.Num(); SectionIndex++)
+		{
+			FString EntryStr = Section[SectionIndex];
+			EntryStr.TrimStartInline();
+
+			FString PathStr;
+			FString ColorStr;
+			if (EntryStr.Split(TEXT("="), &PathStr, &ColorStr))
+			{
+				FLinearColor CurrentColor;
+				if (CurrentColor.InitFromString(ColorStr))
+				{
+					CurrentPathColors.Emplace(PathStr, CurrentColor);
+				}
+			}
+		}
+	}
+
+	TArray<TTuple<FString, FLinearColor>> NewColors = Helpers::GetDifference(CurrentPathColors, CachedPathColors, true);
+	TArray<TTuple<FString, FLinearColor>> RemovedColors = Helpers::GetDifference(CachedPathColors, CurrentPathColors, false);
+
+	UFancyFoldersSettings* Settings = GetMutableDefault<UFancyFoldersSettings>();
+	for (auto Color : NewColors)
+	{
+		Settings->UpdateOrCreateAssignmentColor(Color.Key, Color.Value);
+	}
+
+	for (auto Color : RemovedColors)
+	{
+		Settings->UpdateOrCreateAssignmentColor(Color.Key, AssetViewUtils::GetDefaultColor());
+	}
+
+	CachedPathColors = CurrentPathColors;
 }

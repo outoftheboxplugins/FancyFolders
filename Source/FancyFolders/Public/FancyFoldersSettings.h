@@ -93,8 +93,8 @@ class UFancyFoldersSettings : public UDeveloperSettings
 
 public:
 	TOptional<FFolderData> GetDataForPath(const FString& VirtualPath) const;
-	const FSlateBrush* GetIconForPath(const FString& VirtualPath, bool bIsColumnView, bool bIsOpen) const;
 	TOptional<FLinearColor> GetColorForPath(const FString& VirtualPath) const;
+	const FSlateBrush* GetIconForPath(const FString& VirtualPath, bool bIsColumnView, bool bIsOpen) const;
 
 	void UpdateOrCreateAssignmentIcon(const FString& Path, const FName& Icon);
 	void UpdateOrCreateAssignmentColor(const FString& Path, const FLinearColor& Color);
@@ -110,6 +110,7 @@ public:
 
 private:
 	// Begin UDeveloperSettings interface
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual FName GetContainerName() const override;
 	virtual FName GetCategoryName() const override;
 	virtual FName GetSectionName() const override;

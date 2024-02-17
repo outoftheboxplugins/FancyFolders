@@ -171,6 +171,17 @@ TOptional<FFolderData> UFancyFoldersSettings::GetDataForPath(const FString& Virt
 	return {};
 }
 
+TOptional<FLinearColor> UFancyFoldersSettings::GetColorForPath(const FString& VirtualPath) const
+{
+	const TOptional<FFolderData> DataForPath = GetDataForPath(VirtualPath);
+	if (!DataForPath)
+	{
+		return {};
+	}
+
+	return DataForPath.GetValue().Color;
+}
+
 const FSlateBrush* UFancyFoldersSettings::GetIconForPath(const FString& VirtualPath, bool bIsColumnView, bool bIsOpen) const
 {
 	const TOptional<FFolderData> DataForPath = GetDataForPath(VirtualPath);
@@ -183,16 +194,6 @@ const FSlateBrush* UFancyFoldersSettings::GetIconForPath(const FString& VirtualP
 	return DataForPath.GetValue().GetIcon(FolderState);
 }
 
-TOptional<FLinearColor> UFancyFoldersSettings::GetColorForPath(const FString& VirtualPath) const
-{
-	const TOptional<FFolderData> DataForPath = GetDataForPath(VirtualPath);
-	if (!DataForPath)
-	{
-		return {};
-	}
-
-	return DataForPath.GetValue().Color;
-}
 void UFancyFoldersSettings::UpdateOrCreateAssignmentIcon(const FString& Path, const FName& Icon)
 {
 	FPathAssignedData* CurrentAssignment = PathAssignments.FindByPredicate(
@@ -230,6 +231,22 @@ void UFancyFoldersSettings::UpdateOrCreateAssignmentColor(const FString& Path, c
 	{
 		FPathAssignedData NewAssignment(Path, {FName("Default"), Color});
 		PathAssignments.Emplace(NewAssignment);
+	}
+}
+
+void UFancyFoldersSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	if (PropertyChangedEvent.MemberProperty && PropertyChangedEvent.ChangeType != EPropertyChangeType::Interactive)
+	{
+		if (PropertyChangedEvent.MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(UFancyFoldersSettings, PathAssignments))
+		{
+			for (FPathAssignedData Assignment : PathAssignments)
+			{
+				AssetViewUtils::SetPathColor(Assignment.Path, Assignment.Data.Color);
+			}
+		}
 	}
 }
 
