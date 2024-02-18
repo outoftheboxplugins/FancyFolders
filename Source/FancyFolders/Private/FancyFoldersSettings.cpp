@@ -75,7 +75,7 @@ void UFancyFoldersSettings::UpdateOrCreateAssignmentIcon(const FString& Path, co
 	}
 	else
 	{
-		FPathAssignedData NewAssignment(Path, {Icon, AssetViewUtils::GetDefaultColor()});
+		FPathAssignedData NewAssignment = {Path, {Icon, AssetViewUtils::GetDefaultColor()}};
 		PathAssignments.Emplace(NewAssignment);
 	}
 }
@@ -95,7 +95,7 @@ void UFancyFoldersSettings::UpdateOrCreateAssignmentColor(const FString& Path, c
 	}
 	else
 	{
-		FPathAssignedData NewAssignment(Path, {FName("Default"), Color});
+		FPathAssignedData NewAssignment = {Path, {FName("Default"), Color}};
 		PathAssignments.Emplace(NewAssignment);
 	}
 }
