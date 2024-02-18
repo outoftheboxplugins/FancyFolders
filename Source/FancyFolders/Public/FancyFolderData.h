@@ -52,6 +52,9 @@ struct FFolderData
 class FFolderDataCustomization : public IPropertyTypeCustomization
 {
 public:
+	/**
+	 * Creates instances of FFolderDataCustomization to customize each FFolderData
+	 */
 	static TSharedRef<IPropertyTypeCustomization> MakeInstance() { return MakeShared<FFolderDataCustomization>(); }
 
 private:
@@ -59,7 +62,6 @@ private:
 	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> StructPropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& StructCustomizationUtils) override;
 	// End IPropertyTypeCustomization interface
-
 	/**
 	 * Callback executed when a new icon is selected from the dropdown
 	 */
@@ -76,7 +78,6 @@ private:
 	 * Convince function to access the folder icon current brush
 	 */
 	const FSlateBrush* GetCurrentBrush() const;
-
 	/**
 	 * Reference to the folder icon property currently edited
 	 */

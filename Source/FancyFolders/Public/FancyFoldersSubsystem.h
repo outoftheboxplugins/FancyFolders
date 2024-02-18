@@ -18,7 +18,6 @@ using FOnGetFolderState = TDelegate<bool()>;
 struct FContentBrowserFolder
 {
 	bool operator==(const FContentBrowserFolder& Other) const;
-
 	/**
 	 * VirtualPath of the FolderPath
 	 */
