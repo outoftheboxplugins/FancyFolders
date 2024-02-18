@@ -7,6 +7,7 @@
 #include <IContentBrowserDataModule.h>
 #include <PathViewTypes.h>
 #include <SAssetView.h>
+#include <SPathView.h>
 
 #include "FancyFoldersSettings.h"
 
@@ -169,7 +170,8 @@ void UFancyFoldersSubsystem::OnPostTick(float DeltaTime)
 {
 	SyncFolderColorData();
 
-	RefreshAllFolders();
+	RefreshAssetViewFolders();
+	RefreshPathViewFolders();
 }
 
 void UFancyFoldersSubsystem::AssignIconAndColor(const FContentBrowserFolder& Folder)
@@ -247,12 +249,6 @@ FSlateColor UFancyFoldersSubsystem::GetColorForFolder(FContentBrowserFolder Fold
 	}
 
 	return AssetViewUtils::GetDefaultColor();
-}
-
-void UFancyFoldersSubsystem::RefreshAllFolders()
-{
-	RefreshAssetViewFolders();
-	RefreshPathViewFolders();
 }
 
 void UFancyFoldersSubsystem::RefreshAssetViewFolders()
