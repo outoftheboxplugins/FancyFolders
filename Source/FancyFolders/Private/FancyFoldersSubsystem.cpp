@@ -300,7 +300,15 @@ void UFancyFoldersSubsystem::RefreshPathViewFolders()
 			{
 				if (const TSharedPtr<SImage> FoundImage = Helpers::FindChildWidgetOfType<SImage>(Widget->GetContent().ToSharedRef()))
 				{
-					FContentBrowserFolder Folder = {Entry.Key, FoundImage.ToSharedRef()};
+					FContentBrowserFolder Folder = {
+						Entry.Key,
+						FoundImage.ToSharedRef(),
+						TDelegate<bool()>::CreateLambda(
+							[=]()
+							{
+								return TreeViewPtr->IsItemExpanded(Entry.Value.Pin());
+							}
+						)};
 					AssignIconAndColor(Folder);
 				}
 			}
