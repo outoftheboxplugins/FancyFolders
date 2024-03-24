@@ -162,8 +162,11 @@ void UFancyFoldersSubsystem::SetFoldersIcon(const FString& Icon, TArray<FString>
 
 void UFancyFoldersSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	FSlateApplication& SlateApp = FSlateApplication::Get();
-	SlateApp.OnPostTick().AddUObject(this, &ThisClass::OnPostTick);
+	if (FSlateApplication::IsInitialized())
+	{
+		FSlateApplication& SlateApp = FSlateApplication::Get();
+		SlateApp.OnPostTick().AddUObject(this, &ThisClass::OnPostTick);
+	}
 }
 
 void UFancyFoldersSubsystem::OnPostTick(float DeltaTime)

@@ -78,6 +78,8 @@ void UFancyFoldersSettings::UpdateOrCreateAssignmentIcon(const FString& Path, co
 		FPathAssignedData NewAssignment = {Path, {Icon, AssetViewUtils::GetDefaultColor()}};
 		PathAssignments.Emplace(NewAssignment);
 	}
+
+	SaveConfig(CPF_Config, *GetDefaultConfigFilename());
 }
 
 void UFancyFoldersSettings::UpdateOrCreateAssignmentColor(const FString& Path, const FLinearColor& Color)
@@ -98,6 +100,8 @@ void UFancyFoldersSettings::UpdateOrCreateAssignmentColor(const FString& Path, c
 		FPathAssignedData NewAssignment = {Path, {FName("Default"), Color}};
 		PathAssignments.Emplace(NewAssignment);
 	}
+
+	SaveConfig(CPF_Config, *GetDefaultConfigFilename());
 }
 
 void UFancyFoldersSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
