@@ -9,16 +9,6 @@
 #include "FancyFolders.h"
 #include "FancyFoldersStyle.h"
 
-EFolderState StateFromFlags(bool bIsColumnView, bool bIsOpen)
-{
-	if (bIsColumnView)
-	{
-		return bIsOpen ? EFolderState::ColumnOpen : EFolderState::ColumnClosed;
-	}
-
-	return EFolderState::Normal;
-}
-
 FFolderData::FFolderData()
 {
 	Icon = TEXT("Default");

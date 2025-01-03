@@ -4,6 +4,16 @@
 
 #include <AssetViewUtils.h>
 
+EFolderState StateFromFlags(bool bIsColumnView, bool bIsOpen)
+{
+	if (bIsColumnView)
+	{
+		return bIsOpen ? EFolderState::ColumnOpen : EFolderState::ColumnClosed;
+	}
+
+	return EFolderState::Normal;
+}
+
 TOptional<FFolderData> UFancyFoldersSettings::GetDataForPath(const FString& Path) const
 {
 	for (const auto& PathAssigned : PathAssignments)
