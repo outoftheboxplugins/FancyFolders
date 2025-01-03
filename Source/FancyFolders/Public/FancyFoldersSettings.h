@@ -18,12 +18,12 @@ struct FPathAssignedData
 	/**
 	 * Full path of the folder, e.g.: /Game/MyTopFolder/MyLowerFolder
 	 */
-	UPROPERTY(EditAnywhere, Category = "")
+	UPROPERTY(EditAnywhere, Category = "FancyFolders")
 	FString Path;
 	/**
 	 * Color & icon assigned
 	 */
-	UPROPERTY(EditAnywhere, Category = "")
+	UPROPERTY(EditAnywhere, Category = "FancyFolders")
 	FFolderData Data;
 };
 /**
@@ -36,12 +36,12 @@ struct FPathPresetData
 	/**
 	 * Regex to match a folder's path, e.g.: /Game/ArchitectureVis_*
 	 */
-	UPROPERTY(EditAnywhere, Category = "")
+	UPROPERTY(EditAnywhere, Category = "FancyFolders")
 	FString PathRegex;
 	/**
 	 * Color & icon assigned
 	 */
-	UPROPERTY(EditAnywhere, Category = "")
+	UPROPERTY(EditAnywhere, Category = "FancyFolders")
 	FFolderData Data;
 };
 /**
@@ -54,12 +54,12 @@ struct FFolderPresetData
 	/**
 	 * Regex to match a folder's name, e.g.: BP_*
 	 */
-	UPROPERTY(EditAnywhere, Category = "")
+	UPROPERTY(EditAnywhere, Category = "FancyFolders")
 	FString FolderRegex;
 	/**
 	 * Color & icon assigned
 	 */
-	UPROPERTY(EditAnywhere, Category = "")
+	UPROPERTY(EditAnywhere, Category = "FancyFolders")
 	FFolderData Data;
 };
 
@@ -97,17 +97,17 @@ private:
 	/**
 	 * Data rules based on a folder's full path
 	 */
-	UPROPERTY(EditAnywhere, config, Category = "")
+	UPROPERTY(EditAnywhere, config, Category = "FancyFolders")
 	TArray<FPathAssignedData> PathAssignments;
 	/**
 	 * Data rules based on a folder's path regex match
 	 */
-	UPROPERTY(EditAnywhere, config, Category = "")
+	UPROPERTY(EditAnywhere, config, Category = "FancyFolders")
 	TArray<FPathPresetData> PathPresets;
 	/**
 	 * Data rules based on a folder's name regex match
 	 */
-	UPROPERTY(EditAnywhere, config, Category = "")
+	UPROPERTY(EditAnywhere, config, Category = "FancyFolders")
 	TArray<FFolderPresetData> FolderPresets;
 
 	// Begin UDeveloperSettings interface
