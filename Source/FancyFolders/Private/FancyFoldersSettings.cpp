@@ -89,7 +89,7 @@ void UFancyFoldersSettings::UpdateOrCreateAssignmentIcon(const FString& Path, co
 		PathAssignments.Emplace(NewAssignment);
 	}
 
-	SaveConfig(CPF_Config, *GetDefaultConfigFilename());
+	TryUpdateDefaultConfigFile();
 }
 
 void UFancyFoldersSettings::UpdateOrCreateAssignmentColor(const FString& Path, const FLinearColor& Color)
@@ -111,7 +111,7 @@ void UFancyFoldersSettings::UpdateOrCreateAssignmentColor(const FString& Path, c
 		PathAssignments.Emplace(NewAssignment);
 	}
 
-	SaveConfig(CPF_Config, *GetDefaultConfigFilename());
+	TryUpdateDefaultConfigFile();
 }
 
 void UFancyFoldersSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
