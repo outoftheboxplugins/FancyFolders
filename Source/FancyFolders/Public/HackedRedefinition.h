@@ -1,6 +1,9 @@
+// Copyright Out-of-the-Box Plugins 2018-2025. All Rights Reserved.
+
 #pragma once
 
 // This was copied from SPathView.cpp because for some reason the definition is inside the .cpp file
+// Note: VirtualPathToItem was made public on purpose so we can access the data.
 
 struct FPathViewData
 {

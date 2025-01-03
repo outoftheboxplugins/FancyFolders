@@ -1,4 +1,4 @@
-﻿// Copyright Out-of-the-Box Plugins 2018-2024. All Rights Reserved.
+﻿// Copyright Out-of-the-Box Plugins 2018-2025. All Rights Reserved.
 
 #include "FancyFoldersSettings.h"
 
