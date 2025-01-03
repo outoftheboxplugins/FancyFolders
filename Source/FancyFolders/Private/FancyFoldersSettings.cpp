@@ -132,7 +132,7 @@ void UFancyFoldersSettings::PostEditChangeProperty(FPropertyChangedEvent& Proper
 
 FName UFancyFoldersSettings::GetContainerName() const
 {
-	return TEXT("Editor");
+	return TEXT("Project");
 }
 
 FName UFancyFoldersSettings::GetCategoryName() const
