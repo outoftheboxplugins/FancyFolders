@@ -9,6 +9,8 @@
 #include <SAssetView.h>
 #include <SPathView.h>
 
+#include "HackedRedefinition.h"
+
 #include "FancyFoldersSettings.h"
 
 // TODO: Add option to clear data - icon & color
@@ -70,15 +72,15 @@ namespace Helpers
 		return StaticCastSharedPtr<T>(Result);
 	}
 
-	TMap<FName, TWeakPtr<FTreeItem>> GetInternalPathData(const TSharedRef<SPathView>& PathView)
+	TMap<FName, TSharedPtr<FTreeItem>> GetInternalPathData(const TSharedRef<SPathView>& PathView)
 	{
 		class SInternalAccessPathView : public SPathView
 		{
 		public:
-			TMap<FName, TWeakPtr<FTreeItem>> MyCoolGetter() const { return TreeItemLookup; }
+			TMap<FName, TSharedPtr<FTreeItem>> MyCoolGetter() const { return TreeData->VirtualPathToItem; }
 		};
 
-		TMap<FName, TWeakPtr<FTreeItem>> Data = reinterpret_cast<SInternalAccessPathView*>(&PathView.Get())->MyCoolGetter();
+		TMap<FName, TSharedPtr<FTreeItem>> Data = reinterpret_cast<SInternalAccessPathView*>(&PathView.Get())->MyCoolGetter();
 		return Data;
 	}
 
@@ -289,7 +291,7 @@ void UFancyFoldersSubsystem::RefreshPathViewFolders()
 	TArray<TSharedRef<SPathView>> PathWidgets = GetAllPathWidgets();
 	for (const TSharedRef<SPathView>& PathWidget : PathWidgets)
 	{
-		TMap<FName, TWeakPtr<FTreeItem>> Data = Helpers::GetInternalPathData(PathWidget);
+		TMap<FName, TSharedPtr<FTreeItem>> Data = Helpers::GetInternalPathData(PathWidget);
 
 		const TSharedPtr<STreeView<TSharedPtr<FTreeItem>>> TreeViewPtr = Helpers::FindChildWidgetOfType<STreeView<TSharedPtr<FTreeItem>>>(PathWidget, TEXT("STreeView< TSharedPtr<FTreeItem> >"));
 		if (!TreeViewPtr)
@@ -297,9 +299,9 @@ void UFancyFoldersSubsystem::RefreshPathViewFolders()
 			return;
 		}
 
-		for (const TTuple<FName, TWeakPtr<FTreeItem>>& Entry : Data)
+		for (const TTuple<FName, TSharedPtr<FTreeItem>>& Entry : Data)
 		{
-			if (const TSharedPtr<ITableRow> Widget = TreeViewPtr->WidgetFromItem(Entry.Value.Pin()))
+			if (const TSharedPtr<ITableRow> Widget = TreeViewPtr->WidgetFromItem(Entry.Value))
 			{
 				if (const TSharedPtr<SImage> FoundImage = Helpers::FindChildWidgetOfType<SImage>(Widget->GetContent().ToSharedRef()))
 				{
@@ -309,7 +311,7 @@ void UFancyFoldersSubsystem::RefreshPathViewFolders()
 						TDelegate<bool()>::CreateLambda(
 							[=]()
 							{
-								return TreeViewPtr->IsItemExpanded(Entry.Value.Pin());
+								return TreeViewPtr->IsItemExpanded(Entry.Value);
 							}
 						)};
 					AssignIconAndColor(Folder);
