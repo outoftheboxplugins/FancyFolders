@@ -12,7 +12,8 @@
 	"SupportURL": "https://discord.gg/2cD5MwB",
 	"EnabledByDefault": true,
 	"CanContainContent": false,
-	"Modules": [
+	"Modules": 
+	[
 		{
 			"Name": "FancyFolders",
 			"Type": "Editor",
