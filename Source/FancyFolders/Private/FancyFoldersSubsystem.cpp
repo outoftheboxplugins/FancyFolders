@@ -8,6 +8,7 @@
 #include <PathViewTypes.h>
 #include <SAssetView.h>
 #include <SPathView.h>
+#include <Misc/EngineVersionComparison.h>
 
 #include "HackedRedefinition.h"
 
@@ -293,7 +294,13 @@ void UFancyFoldersSubsystem::RefreshPathViewFolders()
 	{
 		TMap<FName, TSharedPtr<FTreeItem>> Data = Helpers::GetInternalPathData(PathWidget);
 
-		const TSharedPtr<STreeView<TSharedPtr<FTreeItem>>> TreeViewPtr = Helpers::FindChildWidgetOfType<STreeView<TSharedPtr<FTreeItem>>>(PathWidget, TEXT("STreeView< TSharedPtr<FTreeItem> >"));
+#if UE_VERSION_NEWER_THAN(5, 5, 0)
+		const FName PathWidgetType = TEXT("STreeView<TSharedPtr<FTreeItem>>");
+#else
+		const FName PathWidgetType =  TEXT("STreeView< TSharedPtr<FTreeItem> >");
+#endif
+
+		const TSharedPtr<STreeView<TSharedPtr<FTreeItem>>> TreeViewPtr = Helpers::FindChildWidgetOfType<STreeView<TSharedPtr<FTreeItem>>>(PathWidget, PathWidgetType);
 		if (!TreeViewPtr)
 		{
 			return;
