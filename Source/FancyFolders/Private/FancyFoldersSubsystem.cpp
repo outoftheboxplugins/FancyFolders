@@ -73,15 +73,19 @@ namespace Helpers
 		return StaticCastSharedPtr<T>(Result);
 	}
 
-	TMap<FName, TSharedPtr<FTreeItem>> GetInternalPathData(const TSharedRef<SPathView>& PathView)
+	TMap<FName, FTreeItemPtr> GetInternalPathData(const TSharedRef<SPathView>& PathView)
 	{
 		class SInternalAccessPathView : public SPathView
 		{
 		public:
-			TMap<FName, TSharedPtr<FTreeItem>> MyCoolGetter() const { return TreeData->VirtualPathToItem; }
+#if UE_VERSION_NEWER_THAN(5, 5, 0)
+			TMap<FName, FTreeItemPtr> MyCoolGetter() const { return TreeData->VirtualPathToItem; }
+#else
+			TMap<FName, FTreeItemPtr> MyCoolGetter() const { return TreeItemLookup; }
+#endif
 		};
 
-		TMap<FName, TSharedPtr<FTreeItem>> Data = reinterpret_cast<SInternalAccessPathView*>(&PathView.Get())->MyCoolGetter();
+		TMap<FName, FTreeItemPtr> Data = reinterpret_cast<SInternalAccessPathView*>(&PathView.Get())->MyCoolGetter();
 		return Data;
 	}
 
@@ -292,7 +296,7 @@ void UFancyFoldersSubsystem::RefreshPathViewFolders()
 	TArray<TSharedRef<SPathView>> PathWidgets = GetAllPathWidgets();
 	for (const TSharedRef<SPathView>& PathWidget : PathWidgets)
 	{
-		TMap<FName, TSharedPtr<FTreeItem>> Data = Helpers::GetInternalPathData(PathWidget);
+		TMap<FName, FTreeItemPtr> Data = Helpers::GetInternalPathData(PathWidget);
 
 #if UE_VERSION_NEWER_THAN(5, 5, 0)
 		const FName PathWidgetType = TEXT("STreeView<TSharedPtr<FTreeItem>>");
@@ -306,9 +310,11 @@ void UFancyFoldersSubsystem::RefreshPathViewFolders()
 			return;
 		}
 
-		for (const TTuple<FName, TSharedPtr<FTreeItem>>& Entry : Data)
+		for (const TTuple<FName, FTreeItemPtr>& Entry : Data)
 		{
-			if (const TSharedPtr<ITableRow> Widget = TreeViewPtr->WidgetFromItem(Entry.Value))
+			TWeakPtr<FTreeItem> EntryValue = Entry.Value;
+
+			if (const TSharedPtr<ITableRow> Widget = TreeViewPtr->WidgetFromItem(EntryValue.Pin()))
 			{
 				if (const TSharedPtr<SImage> FoundImage = Helpers::FindChildWidgetOfType<SImage>(Widget->GetContent().ToSharedRef()))
 				{
@@ -318,7 +324,7 @@ void UFancyFoldersSubsystem::RefreshPathViewFolders()
 						TDelegate<bool()>::CreateLambda(
 							[=]()
 							{
-								return TreeViewPtr->IsItemExpanded(Entry.Value);
+								return TreeViewPtr->IsItemExpanded(EntryValue.Pin());
 							}
 						)};
 					AssignIconAndColor(Folder);

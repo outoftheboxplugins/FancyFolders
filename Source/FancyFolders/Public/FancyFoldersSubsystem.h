@@ -4,13 +4,21 @@
 
 #include <ContentBrowserItem.h>
 #include <EditorSubsystem.h>
+#include <Misc/EngineVersionComparison.h>
 
 #include "FancyFoldersSubsystem.generated.h"
 
 class SPathView;
 class SAssetView;
+class FTreeItem;
 
 using FOnGetFolderState = TDelegate<bool()>;
+
+#if UE_VERSION_NEWER_THAN(5, 5, 0)
+using FTreeItemPtr = TSharedPtr<FTreeItem>;
+#else
+using FTreeItemPtr = TWeakPtr<FTreeItem>;
+#endif
 
 /**
  * Struct representing the information about folder - path, image widget, state
