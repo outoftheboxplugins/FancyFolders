@@ -78,7 +78,7 @@ namespace Helpers
 		class SInternalAccessPathView : public SPathView
 		{
 		public:
-#if UE_VERSION_NEWER_THAN(5, 5, 0)
+#if UE_VERSION_NEWER_THAN(5, 4, 4)
 			TMap<FName, FTreeItemPtr> MyCoolGetter() const { return TreeData->VirtualPathToItem; }
 #else
 			TMap<FName, FTreeItemPtr> MyCoolGetter() const { return TreeItemLookup; }
@@ -298,7 +298,7 @@ void UFancyFoldersSubsystem::RefreshPathViewFolders()
 	{
 		TMap<FName, FTreeItemPtr> Data = Helpers::GetInternalPathData(PathWidget);
 
-#if UE_VERSION_NEWER_THAN(5, 5, 0)
+#if UE_VERSION_NEWER_THAN(5, 4, 4)
 		const FName PathWidgetType = TEXT("STreeView<TSharedPtr<FTreeItem>>");
 #else
 		const FName PathWidgetType =  TEXT("STreeView< TSharedPtr<FTreeItem> >");

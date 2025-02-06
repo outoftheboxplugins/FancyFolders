@@ -14,7 +14,7 @@ class FTreeItem;
 
 using FOnGetFolderState = TDelegate<bool()>;
 
-#if UE_VERSION_NEWER_THAN(5, 5, 0)
+#if UE_VERSION_NEWER_THAN(5, 4, 4)
 using FTreeItemPtr = TSharedPtr<FTreeItem>;
 #else
 using FTreeItemPtr = TWeakPtr<FTreeItem>;
