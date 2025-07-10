@@ -77,9 +77,10 @@ void UFancyFoldersSettings::UpdateOrCreateAssignmentIcon(const FString& Path, TO
 		return Data.Path == Path;
 	};
 
+	FPathAssignedData* CurrentAssignment = PathAssignments.FindByPredicate(FindEntryPredicate);
 	if (Icon.IsSet())
 	{
-		if (FPathAssignedData* CurrentAssignment = PathAssignments.FindByPredicate(FindEntryPredicate))
+		if (CurrentAssignment)
 		{
 			CurrentAssignment->Data.Icon = *Icon;
 		}
@@ -91,7 +92,14 @@ void UFancyFoldersSettings::UpdateOrCreateAssignmentIcon(const FString& Path, TO
 	}
 	else
 	{
-		PathAssignments.RemoveAll(FindEntryPredicate);
+		if (CurrentAssignment->Data.Color != AssetViewUtils::GetDefaultColor())
+		{
+			CurrentAssignment->Data.Icon = FName("Default");
+		}
+		else
+		{
+			PathAssignments.RemoveAll(FindEntryPredicate);
+		}
 	}
 
 	TryUpdateDefaultConfigFile();
@@ -104,9 +112,10 @@ void UFancyFoldersSettings::UpdateOrCreateAssignmentColor(const FString& Path, T
 		return Data.Path == Path;
 	};
 
+	FPathAssignedData* CurrentAssignment = PathAssignments.FindByPredicate(FindEntryPredicate);
 	if (Color.IsSet())
 	{
-		if (FPathAssignedData* CurrentAssignment = PathAssignments.FindByPredicate(FindEntryPredicate))
+		if (CurrentAssignment)
 		{
 			CurrentAssignment->Data.Color = *Color;
 		}
@@ -118,7 +127,14 @@ void UFancyFoldersSettings::UpdateOrCreateAssignmentColor(const FString& Path, T
 	}
 	else
 	{
-		PathAssignments.RemoveAll(FindEntryPredicate);
+		if (CurrentAssignment->Data.Icon != FName("Default"))
+		{
+			CurrentAssignment->Data.Color = Color.GetValue();
+		}
+		else
+		{
+			PathAssignments.RemoveAll(FindEntryPredicate);
+		}
 	}
 
 	TryUpdateDefaultConfigFile();
