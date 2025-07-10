@@ -91,7 +91,7 @@ public:
 	/**
 	 * Update (or creates) the assignment at a specific path using the provided color. Icon remains unchanged or set to default
 	 */
-	void UpdateOrCreateAssignmentColor(const FString& Path, const FLinearColor& Color);
+	void UpdateOrCreateAssignmentColor(const FString& Path, TOptional<FLinearColor> Color);
 
 private:
 	/**
@@ -111,6 +111,7 @@ private:
 	TArray<FFolderPresetData> FolderPresets;
 
 	// Begin UDeveloperSettings interface
+	virtual void PreEditChange(FEditPropertyChain& PropertyAboutToChange) override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual FName GetContainerName() const override;
 	virtual FName GetCategoryName() const override;

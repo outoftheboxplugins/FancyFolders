@@ -412,7 +412,7 @@ void UFancyFoldersSubsystem::SyncFolderColorData()
 
 	for (auto Color : RemovedColors)
 	{
-		Settings->UpdateOrCreateAssignmentColor(Color.Key, AssetViewUtils::GetDefaultColor());
+		Settings->UpdateOrCreateAssignmentColor(Color.Key, {});
 	}
 
 	CachedPathColors = CurrentPathColors;

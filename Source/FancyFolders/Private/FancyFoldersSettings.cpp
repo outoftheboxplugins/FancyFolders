@@ -92,40 +92,59 @@ void UFancyFoldersSettings::UpdateOrCreateAssignmentIcon(const FString& Path, co
 	TryUpdateDefaultConfigFile();
 }
 
-void UFancyFoldersSettings::UpdateOrCreateAssignmentColor(const FString& Path, const FLinearColor& Color)
+void UFancyFoldersSettings::UpdateOrCreateAssignmentColor(const FString& Path, TOptional<FLinearColor> Color)
 {
-	FPathAssignedData* CurrentAssignment = PathAssignments.FindByPredicate(
-		[Path](const FPathAssignedData& Data)
-		{
-			return Data.Path == Path;
-		}
-	);
-
-	if (CurrentAssignment)
+	auto FindEntryPredicate = [Path](const FPathAssignedData& Data)
 	{
-		CurrentAssignment->Data.Color = Color;
+		return Data.Path == Path;
+	};
+
+	if (Color.IsSet())
+	{
+		if (FPathAssignedData* CurrentAssignment = PathAssignments.FindByPredicate(FindEntryPredicate))
+		{
+			CurrentAssignment->Data.Color = *Color;
+		}
+		else
+		{
+			FPathAssignedData NewAssignment = {Path, {FName("Default"), *Color}};
+			PathAssignments.Emplace(NewAssignment);
+		}
 	}
 	else
 	{
-		FPathAssignedData NewAssignment = {Path, {FName("Default"), Color}};
-		PathAssignments.Emplace(NewAssignment);
+		PathAssignments.RemoveAll(FindEntryPredicate);
 	}
 
 	TryUpdateDefaultConfigFile();
+}
+
+void UFancyFoldersSettings::PreEditChange(FEditPropertyChain& PropertyAboutToChange)
+{
+	Super::PreEditChange(PropertyAboutToChange);
+
+	FProperty* PropertyChanged = PropertyAboutToChange.GetActiveMemberNode()->GetValue();
+	if (PropertyChanged && PropertyChanged->GetFName() == GET_MEMBER_NAME_CHECKED(UFancyFoldersSettings, PathAssignments))
+	{
+		for (FPathAssignedData Assignment : PathAssignments)
+		{
+			// Reset the color of all path assignments before the change takes effect 
+			AssetViewUtils::SetPathColor(Assignment.Path, {});
+		}
+	}
 }
 
 void UFancyFoldersSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	if (PropertyChangedEvent.MemberProperty && PropertyChangedEvent.ChangeType != EPropertyChangeType::Interactive)
+	FProperty* PropertyChanged = PropertyChangedEvent.MemberProperty;
+	if (PropertyChanged && PropertyChanged->GetFName() == GET_MEMBER_NAME_CHECKED(UFancyFoldersSettings, PathAssignments))
 	{
-		if (PropertyChangedEvent.MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(UFancyFoldersSettings, PathAssignments))
+		for (FPathAssignedData Assignment : PathAssignments)
 		{
-			for (FPathAssignedData Assignment : PathAssignments)
-			{
-				AssetViewUtils::SetPathColor(Assignment.Path, Assignment.Data.Color);
-			}
+			// Re-apply the color of all path assignments after the change has taken effect
+			AssetViewUtils::SetPathColor(Assignment.Path, Assignment.Data.Color);
 		}
 	}
 }
