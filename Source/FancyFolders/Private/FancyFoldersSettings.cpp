@@ -70,23 +70,28 @@ const FSlateBrush* UFancyFoldersSettings::GetIconForPath(const FString& Path, bo
 	return DataForPath.GetValue().GetIcon(FolderState);
 }
 
-void UFancyFoldersSettings::UpdateOrCreateAssignmentIcon(const FString& Path, const FName& Icon)
+void UFancyFoldersSettings::UpdateOrCreateAssignmentIcon(const FString& Path, TOptional<FName> Icon)
 {
-	FPathAssignedData* CurrentAssignment = PathAssignments.FindByPredicate(
-		[Path](const FPathAssignedData& Data)
-		{
-			return Data.Path == Path;
-		}
-	);
-
-	if (CurrentAssignment)
+	auto FindEntryPredicate = [Path](const FPathAssignedData& Data)
 	{
-		CurrentAssignment->Data.Icon = Icon;
+		return Data.Path == Path;
+	};
+
+	if (Icon.IsSet())
+	{
+		if (FPathAssignedData* CurrentAssignment = PathAssignments.FindByPredicate(FindEntryPredicate))
+		{
+			CurrentAssignment->Data.Icon = *Icon;
+		}
+		else
+		{
+			FPathAssignedData NewAssignment = {Path, {*Icon, AssetViewUtils::GetDefaultColor()}};
+			PathAssignments.Emplace(NewAssignment);
+		}
 	}
 	else
 	{
-		FPathAssignedData NewAssignment = {Path, {Icon, AssetViewUtils::GetDefaultColor()}};
-		PathAssignments.Emplace(NewAssignment);
+		PathAssignments.RemoveAll(FindEntryPredicate);
 	}
 
 	TryUpdateDefaultConfigFile();

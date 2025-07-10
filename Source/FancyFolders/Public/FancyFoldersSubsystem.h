@@ -72,6 +72,14 @@ public:
 	 * Assigns a certain icon to each folder in the array
 	 */
 	void SetFoldersIcon(const FString& Icon, TArray<FString> Folders);
+	/**
+	 * Checks if a certain path has a direct assignment (not taking into account rules or presets)
+	 */
+	bool HasFolderIcon(const FString& Path) const;
+	/**
+	 * Removes the direct assignment for a path, if it exists (not taking into account rules or presets)
+	 */
+	void ClearFolderIcon(const FString& Path);
 
 private:
 	// Begin UEditorSubsystem interface

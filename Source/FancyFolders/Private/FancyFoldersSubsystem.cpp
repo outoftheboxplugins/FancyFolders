@@ -167,6 +167,19 @@ void UFancyFoldersSubsystem::SetFoldersIcon(const FString& Icon, TArray<FString>
 	}
 }
 
+bool UFancyFoldersSubsystem::HasFolderIcon(const FString& Path) const
+{
+	const UFancyFoldersSettings* Settings = GetDefault<UFancyFoldersSettings>();
+	TOptional<FFolderData> FolderData = Settings->GetDataForPath(Path);
+	return FolderData.IsSet() && FolderData->Icon != FName("Default");
+}
+
+void UFancyFoldersSubsystem::ClearFolderIcon(const FString& Path)
+{
+	UFancyFoldersSettings* Settings = GetMutableDefault<UFancyFoldersSettings>();
+	Settings->UpdateOrCreateAssignmentIcon(Path, {});
+}
+
 void UFancyFoldersSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	if (FSlateApplication::IsInitialized())

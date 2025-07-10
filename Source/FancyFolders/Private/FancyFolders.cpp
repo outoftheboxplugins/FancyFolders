@@ -52,6 +52,28 @@ void FFancyFoldersModule::BuildContextMenu(FMenuBuilder& MenuBuilder, UContentBr
 		return;
 	}
 
+	if (Context->NumAssetPaths == 1)
+	{
+		const FString& SinglePath = Context->SelectedPackagePaths[0];
+
+		if (UFancyFoldersSubsystem::Get().HasFolderIcon(SinglePath))
+		{
+			MenuBuilder.AddMenuEntry(
+				INVTEXT("Clear"),
+				INVTEXT("Clear the folder's icon."),
+				FSlateIcon(),
+				FUIAction(FExecuteAction::CreateLambda(
+					[=, this]()
+					{
+						UFancyFoldersSubsystem::Get().ClearFolderIcon(SinglePath);
+					}
+				))
+			);
+
+			MenuBuilder.AddMenuSeparator();
+		}
+	}
+
 	TArray<FString> IconsAvailable = GetIconFoldersOnDisk();
 	for (const FString& IconPath : IconsAvailable)
 	{

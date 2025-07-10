@@ -87,7 +87,7 @@ public:
 	/**
 	 * Update (or creates) the assignment at a specific path using the provided icon. Color remains unchanged or set to default
 	 */
-	void UpdateOrCreateAssignmentIcon(const FString& Path, const FName& Icon);
+	void UpdateOrCreateAssignmentIcon(const FString& Path, TOptional<FName> Icon);
 	/**
 	 * Update (or creates) the assignment at a specific path using the provided color. Icon remains unchanged or set to default
 	 */
