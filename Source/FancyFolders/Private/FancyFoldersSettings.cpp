@@ -92,7 +92,7 @@ void UFancyFoldersSettings::UpdateOrCreateAssignmentIcon(const FString& Path, TO
 	}
 	else
 	{
-		if (CurrentAssignment->Data.Color != AssetViewUtils::GetDefaultColor())
+		if (CurrentAssignment && !CurrentAssignment->Data.Color.Equals(AssetViewUtils::GetDefaultColor(), 0.1f))
 		{
 			CurrentAssignment->Data.Icon = FName("Default");
 		}
@@ -127,7 +127,7 @@ void UFancyFoldersSettings::UpdateOrCreateAssignmentColor(const FString& Path, T
 	}
 	else
 	{
-		if (CurrentAssignment->Data.Icon != FName("Default"))
+		if (CurrentAssignment && CurrentAssignment->Data.Icon != FName("Default"))
 		{
 			CurrentAssignment->Data.Color = Color.GetValue();
 		}
