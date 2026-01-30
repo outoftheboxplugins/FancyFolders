@@ -4,11 +4,13 @@
 
 #include <ContentBrowserDataSource.h>
 #include <ContentBrowserDataSubsystem.h>
+#include <Editor/UnrealEdEngine.h>
 #include <IContentBrowserDataModule.h>
+#include <Misc/EngineVersionComparison.h>
 #include <PathViewTypes.h>
 #include <SAssetView.h>
 #include <SPathView.h>
-#include <Misc/EngineVersionComparison.h>
+#include <UnrealEdGlobals.h>
 
 #include "HackedRedefinition.h"
 
@@ -191,10 +193,14 @@ void UFancyFoldersSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UFancyFoldersSubsystem::OnPostTick(float DeltaTime)
 {
-	SyncFolderColorData();
 
-	RefreshAssetViewFolders();
-	RefreshPathViewFolders();
+	if (ShouldUpdateContentBrowsers())
+	{
+		SyncFolderColorData();
+
+		RefreshAssetViewFolders();
+		RefreshPathViewFolders();
+	}
 }
 
 void UFancyFoldersSubsystem::AssignIconAndColor(const FContentBrowserFolder& Folder)
@@ -429,4 +435,29 @@ void UFancyFoldersSubsystem::SyncFolderColorData()
 	}
 
 	CachedPathColors = CurrentPathColors;
+}
+
+bool UFancyFoldersSubsystem::ShouldUpdateContentBrowsers() const
+{
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSubsystem::ShouldUpdateContentBrowsers)
+
+	FWorldContext* PIEWorldContext = GUnrealEd->GetPIEWorldContext();
+	if(!PIEWorldContext || PIEWorldContext->WorldType != EWorldType::PIE)
+	{
+		return true;
+	}
+
+	bool bContentBrowserFocused = false;
+
+	FSlateApplication& App = FSlateApplication::Get();
+	FWidgetPath UserFocusedPath = App.GetCursorUser()->GetLastWidgetsUnderCursor().ToWidgetPath();
+	
+	for (int32 WidgetIndex = UserFocusedPath.Widgets.Num() - 1; WidgetIndex >= 0; --WidgetIndex)
+	{
+		const FArrangedWidget& CurrentWidget = UserFocusedPath.Widgets[WidgetIndex];
+		const FString CurrentWidgetType = CurrentWidget.Widget->ToString();
+		bContentBrowserFocused |= CurrentWidgetType.Contains(TEXT("ContentBrowser"));
+	}
+
+	return bContentBrowserFocused;
 }

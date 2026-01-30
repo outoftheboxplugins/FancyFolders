@@ -122,6 +122,10 @@ private:
 	 */
 	void SyncFolderColorData();
 	/**
+	 * Checks if we should be running the expansive content browser updates
+	 */
+	bool ShouldUpdateContentBrowsers() const;
+	/**
 	 * PathColors values from last FolderColorData sync
 	 */
 	TMap<FString, FLinearColor> CachedPathColors;
