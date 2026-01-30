@@ -193,6 +193,7 @@ void UFancyFoldersSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UFancyFoldersSubsystem::OnPostTick(float DeltaTime)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSubsystem::OnPostTick)
 
 	if (ShouldUpdateContentBrowsers())
 	{
@@ -282,6 +283,8 @@ FSlateColor UFancyFoldersSubsystem::GetColorForFolder(FContentBrowserFolder Fold
 
 void UFancyFoldersSubsystem::RefreshAssetViewFolders()
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSubsystem::RefreshAssetViewFolders)
+
 	TArray<TSharedRef<SWidget>> AssetViewWidgets = TArray<TSharedRef<SWidget>>(GetAllAssetViews());
 
 	Helpers::IterateOverWidgetsRecursively(
@@ -312,6 +315,8 @@ void UFancyFoldersSubsystem::RefreshAssetViewFolders()
 
 void UFancyFoldersSubsystem::RefreshPathViewFolders()
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSubsystem::RefreshPathViewFolders)
+
 	TArray<TSharedRef<SPathView>> PathWidgets = GetAllPathWidgets();
 	for (const TSharedRef<SPathView>& PathWidget : PathWidgets)
 	{
@@ -397,6 +402,8 @@ TArray<TSharedRef<SPathView>> UFancyFoldersSubsystem::GetAllPathWidgets()
 
 void UFancyFoldersSubsystem::SyncFolderColorData()
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSubsystem::SyncFolderColorData)
+
 	TMap<FString, FLinearColor> CurrentPathColors;
 	{
 		TArray<FString> Section;
