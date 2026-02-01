@@ -25,6 +25,8 @@ namespace Helpers
 {
 	void IterateOverWidgetsRecursively(const TArray<TSharedRef<SWidget>>& TopLevelWidgets, TFunctionRef<void(const TSharedRef<SWidget>& Widget)> Iterator)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FancyFolders::Helpers::IterateOverWidgetsRecursively)
+
 		TArray<TSharedRef<SWidget>> WidgetsToCheck;
 		WidgetsToCheck.Append(TopLevelWidgets);
 
@@ -56,6 +58,8 @@ namespace Helpers
 	template <typename T>
 	TSharedPtr<T> FindChildWidgetOfType(const TSharedRef<SWidget>& Parent, const FName& WidgetType = T::StaticWidgetClass().GetWidgetType())
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FancyFolders::Helpers::FindChildWidgetOfType)
+
 		TSharedPtr<SWidget> Result;
 
 		TArray<TSharedRef<SWidget>> TopLevelWidgets;
@@ -77,6 +81,8 @@ namespace Helpers
 
 	TMap<FName, FTreeItemPtr> GetInternalPathData(const TSharedRef<SPathView>& PathView)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FancyFolders::Helpers::GetInternalPathData)
+
 		class SInternalAccessPathView : public SPathView
 		{
 		public:
@@ -93,18 +99,24 @@ namespace Helpers
 
 	bool IsItemDeveloperContent(const FContentBrowserItem& InItem)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FancyFolders::Helpers::IsItemDeveloperContent)
+
 		const FContentBrowserItemDataAttributeValue IsDeveloperAttributeValue = InItem.GetItemAttribute(ContentBrowserItemAttributes::ItemIsDeveloperContent);
 		return IsDeveloperAttributeValue.IsValid() && IsDeveloperAttributeValue.GetValue<bool>();
 	}
 
 	bool IsItemCodeContent(const FContentBrowserItem& InItem)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FancyFolders::Helpers::IsItemCodeContent)
+
 		return EnumHasAnyFlags(InItem.GetItemCategory(), EContentBrowserItemFlags::Category_Class);
 	}
 
 	template <typename T, typename U>
 	TArray<TPair<T, U>> GetDifference(const TMap<T, U>& Lhs, const TMap<T, U>& Rhs, bool bIncludeDifferent)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FancyFolders::Helpers::GetDifference)
+
 		TArray<TPair<T, U>> Result;
 		for (auto It = Lhs.CreateConstIterator(); It; ++It)
 		{
@@ -125,6 +137,8 @@ namespace Helpers
 
 bool FContentBrowserFolder::IsOpenNow() const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(FContentBrowserFolder::IsOpenNow)
+
 	if (!GetFolderState.IsBound())
 	{
 		return false;
@@ -140,6 +154,8 @@ bool FContentBrowserFolder::IsColumnViewNow() const
 
 FString FContentBrowserFolder::GetPackagePath() const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(FContentBrowserFolder::GetPackagePath)
+
 	FName ConvertedPath;
 	IContentBrowserDataModule::Get().GetSubsystem()->TryConvertVirtualPath(FolderPath, ConvertedPath);
 	return ConvertedPath.ToString();
@@ -147,6 +163,8 @@ FString FContentBrowserFolder::GetPackagePath() const
 
 FContentBrowserItem FContentBrowserFolder::GetContentBrowserItem() const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(FContentBrowserFolder::GetContentBrowserItem)
+
 	return IContentBrowserDataModule::Get().GetSubsystem()->GetItemAtPath(FName(FolderPath), EContentBrowserItemTypeFilter::IncludeFolders);
 }
 
@@ -162,6 +180,8 @@ UFancyFoldersSubsystem& UFancyFoldersSubsystem::Get()
 
 void UFancyFoldersSubsystem::SetFoldersIcon(const FString& Icon, TArray<FString> Folders)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSubsystem::SetFoldersIcon)
+
 	for (const FString& Folder : Folders)
 	{
 		UFancyFoldersSettings* Settings = GetMutableDefault<UFancyFoldersSettings>();
@@ -171,6 +191,8 @@ void UFancyFoldersSubsystem::SetFoldersIcon(const FString& Icon, TArray<FString>
 
 bool UFancyFoldersSubsystem::HasFolderIcon(const FString& Path) const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSubsystem::HasFolderIcon)
+
 	const UFancyFoldersSettings* Settings = GetDefault<UFancyFoldersSettings>();
 	TOptional<FFolderData> FolderData = Settings->GetDataForPath(Path);
 	return FolderData.IsSet() && FolderData->Icon != FName("Default");
@@ -178,12 +200,16 @@ bool UFancyFoldersSubsystem::HasFolderIcon(const FString& Path) const
 
 void UFancyFoldersSubsystem::ClearFolderIcon(const FString& Path)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSubsystem::ClearFolderIcon)
+
 	UFancyFoldersSettings* Settings = GetMutableDefault<UFancyFoldersSettings>();
 	Settings->UpdateOrCreateAssignmentIcon(Path, {});
 }
 
 void UFancyFoldersSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSubsystem::Initialize)
+
 	if (FSlateApplication::IsInitialized())
 	{
 		FSlateApplication& SlateApp = FSlateApplication::Get();
@@ -206,6 +232,8 @@ void UFancyFoldersSubsystem::OnPostTick(float DeltaTime)
 
 void UFancyFoldersSubsystem::AssignIconAndColor(const FContentBrowserFolder& Folder)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSubsystem::AssignIconAndColor)
+
 	const FContentBrowserItem ContentBrowserFolder = Folder.GetContentBrowserItem();
 	if (!ContentBrowserFolder.IsValid())
 	{
@@ -219,6 +247,8 @@ void UFancyFoldersSubsystem::AssignIconAndColor(const FContentBrowserFolder& Fol
 
 const FSlateBrush* UFancyFoldersSubsystem::GetIconForFolder(FContentBrowserFolder Folder) const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSubsystem::GetIconForFolder)
+
 	const UFancyFoldersSettings* const Settings = GetDefault<UFancyFoldersSettings>();
 
 	const bool bIsOpen = Folder.IsOpenNow();
@@ -271,6 +301,8 @@ const FSlateBrush* UFancyFoldersSubsystem::GetIconForFolder(FContentBrowserFolde
 
 FSlateColor UFancyFoldersSubsystem::GetColorForFolder(FContentBrowserFolder Folder) const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSubsystem::GetColorForFolder)
+
 	const UFancyFoldersSettings* const Settings = GetDefault<UFancyFoldersSettings>();
 
 	if (const TOptional<FLinearColor> CustomColor = Settings->GetColorForPath(Folder.GetPackagePath()))
@@ -360,6 +392,8 @@ void UFancyFoldersSubsystem::RefreshPathViewFolders()
 
 TArray<TSharedRef<SAssetView>> UFancyFoldersSubsystem::GetAllAssetViews()
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSubsystem::GetAllAssetViews)
+
 	TArray<TSharedRef<SAssetView>> Result;
 
 	TArray<TSharedRef<SWidget>> TopLevelWidgets;
@@ -381,6 +415,8 @@ TArray<TSharedRef<SAssetView>> UFancyFoldersSubsystem::GetAllAssetViews()
 
 TArray<TSharedRef<SPathView>> UFancyFoldersSubsystem::GetAllPathWidgets()
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSubsystem::GetAllPathWidgets)
+
 	TArray<TSharedRef<SPathView>> Result;
 
 	TArray<TSharedRef<SWidget>> TopLevelWidgets;
