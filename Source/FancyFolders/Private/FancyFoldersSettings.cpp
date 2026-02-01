@@ -16,6 +16,8 @@ EFolderState StateFromFlags(bool bIsColumnView, bool bIsOpen)
 
 TOptional<FFolderData> UFancyFoldersSettings::GetDataForPath(const FString& Path) const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSettings::GetDataForPath)
+
 	for (const auto& PathAssigned : PathAssignments)
 	{
 		if (PathAssigned.Path == Path)
@@ -49,6 +51,8 @@ TOptional<FFolderData> UFancyFoldersSettings::GetDataForPath(const FString& Path
 
 TOptional<FLinearColor> UFancyFoldersSettings::GetColorForPath(const FString& Path) const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSettings::GetColorForPath)
+
 	const TOptional<FFolderData> DataForPath = GetDataForPath(Path);
 	if (!DataForPath)
 	{
@@ -60,6 +64,8 @@ TOptional<FLinearColor> UFancyFoldersSettings::GetColorForPath(const FString& Pa
 
 const FSlateBrush* UFancyFoldersSettings::GetIconForPath(const FString& Path, bool bIsColumnView, bool bIsOpen) const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSettings::GetIconForPath)
+
 	const TOptional<FFolderData> DataForPath = GetDataForPath(Path);
 	if (!DataForPath)
 	{
@@ -72,6 +78,8 @@ const FSlateBrush* UFancyFoldersSettings::GetIconForPath(const FString& Path, bo
 
 void UFancyFoldersSettings::UpdateOrCreateAssignmentIcon(const FString& Path, TOptional<FName> Icon)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSettings::UpdateOrCreateAssignmentIcon)
+
 	auto FindEntryPredicate = [Path](const FPathAssignedData& Data)
 	{
 		return Data.Path == Path;
@@ -107,6 +115,8 @@ void UFancyFoldersSettings::UpdateOrCreateAssignmentIcon(const FString& Path, TO
 
 void UFancyFoldersSettings::UpdateOrCreateAssignmentColor(const FString& Path, TOptional<FLinearColor> Color)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSettings::UpdateOrCreateAssignmentColor)
+
 	auto FindEntryPredicate = [Path](const FPathAssignedData& Data)
 	{
 		return Data.Path == Path;
@@ -142,6 +152,8 @@ void UFancyFoldersSettings::UpdateOrCreateAssignmentColor(const FString& Path, T
 
 void UFancyFoldersSettings::PreEditChange(FEditPropertyChain& PropertyAboutToChange)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSettings::PreEditChange)
+
 	Super::PreEditChange(PropertyAboutToChange);
 
 	FProperty* PropertyChanged = PropertyAboutToChange.GetActiveMemberNode()->GetValue();
@@ -157,6 +169,8 @@ void UFancyFoldersSettings::PreEditChange(FEditPropertyChain& PropertyAboutToCha
 
 void UFancyFoldersSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UFancyFoldersSettings::PostEditChangeProperty)
+
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
 	FProperty* PropertyChanged = PropertyChangedEvent.MemberProperty;
