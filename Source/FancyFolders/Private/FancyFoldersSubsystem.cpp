@@ -241,8 +241,8 @@ void UFancyFoldersSubsystem::AssignIconAndColor(const FContentBrowserFolder& Fol
 	}
 
 	const TSharedRef<SImage> Image = Folder.FolderImage;
-	Image->SetImage(TAttribute<const FSlateBrush*>::Create(TAttribute<const FSlateBrush*>::FGetter::CreateUObject(this, &ThisClass::GetIconForFolder, Folder)));
-	Image->SetColorAndOpacity(TAttribute<FSlateColor>::Create(TAttribute<FSlateColor>::FGetter::CreateUObject(this, &ThisClass::GetColorForFolder, Folder)));
+	Image->SetImage(GetIconForFolder(Folder));
+	Image->SetColorAndOpacity(GetColorForFolder(Folder));
 }
 
 const FSlateBrush* UFancyFoldersSubsystem::GetIconForFolder(FContentBrowserFolder Folder) const
