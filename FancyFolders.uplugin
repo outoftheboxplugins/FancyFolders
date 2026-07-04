@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineVersion": "5.5",
+	"EngineVersion": "5.8",
 	"VersionName": "",
 	"FriendlyName": "FancyFolders",
 	"Description": "Set custom icons on folders and create automated rules for folder customization.",
